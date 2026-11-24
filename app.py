@@ -192,16 +192,29 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
   .analysis-priority-row { grid-template-columns: minmax(0, 1fr); }
   #statsTable tr > :first-child { min-width: 106px; width: 106px; max-width: 128px; }
 }
-.content-sized-frame .layout { min-height: 0; }
-.content-sized-frame aside { grid-area: 1 / 1; position: static; height: auto; align-self: start; }
-.content-sized-frame .login-layout { min-height: 0; }
-.content-sized-frame #stampDialog { max-height: min(680px, 90dvh); }
+.layout {
+  height: 100dvh;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+#managerScroll {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: scroll;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  padding-bottom: 72px;
+}
+#managerScroll:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
 @media (max-width: 700px) {
-  .content-sized-frame #nav { position: static; }
+  .layout { display: flex; flex-direction: column; }
+  .layout > aside { flex: 0 0 auto; }
+  #managerScroll { flex: 1 1 0; padding-bottom: 96px; }
 }
 </style></head>
 <body><div class="layout"><aside><a class="brand" href="#home"><span class="brandmark">ち</span><span>ちょこまな<small>みまもり</small></span></a><div class="side-note">離れていても、<br>がんばりのそばに。</div><nav id="nav" hidden><button data-page="home">◉ <span>きょうの学習</span></button><button data-page="stats">▥ <span>分析・管理</span></button><button data-page="talk">♬ <span>声とスタンプ</span><i id="unread" hidden></i></button><button data-page="settings">⚙ <span>保護者の設定</span></button></nav><div class="side-bottom"><span class="leaf">❧</span><p>小さな「できた！」を、<br>いっしょに。</p><small>CHOKOMANA MIMAMORI</small></div></aside>
-<main><header><div><div class="eyebrow" id="date"></div><h1 id="pageTitle">お子さまの学びと、つながる。</h1></div><button class="text" id="logout" hidden>ログアウト</button></header>
+<main id="managerScroll" tabindex="0" aria-label="メイン画面"><header><div><div class="eyebrow" id="date"></div><h1 id="pageTitle">お子さまの学びと、つながる。</h1></div><button class="text" id="logout" hidden>ログアウト</button></header>
 <div id="alert" role="alert" hidden></div>
 <section id="loginPage" class="login-layout"><div class="welcome"><div class="welcome-art"><span class="orbit one">✦</span><span class="orbit two">♡</span><div class="bigmark">ち<span>❧</span></div><span class="art-badge">ひとつずつ、できた！</span></div><h2>がんばる毎日に、<br>あなたの声を。</h2><p>学習をやりとげた記録を。<br>ちょこまなの学習を、ここから見守れます。</p><div class="feature-pills"><span>学習のお知らせ</span><span>声のおたより</span><span>応援スタンプ</span></div></div><div class="card login-card"><span class="eyebrow">WELCOME</span><h2>ちょこまなと連携</h2><p class="muted">お子さまが使っているIDとパスワードを入力してください。</p><form id="loginForm"><label>ID<input name="username" autocomplete="username" required maxlength="32" autocapitalize="none" spellcheck="false" placeholder="ちょこまなのID"></label><label>パスワード<input name="password" autocomplete="current-password" type="password" required maxlength="128" placeholder="パスワードを入力"></label><button class="primary full" type="submit">連携してはじめる <span>→</span></button></form><p class="fine">新規のID作成は、ちょこまな本体で行ってください。</p></div></section>
 <div id="app" hidden>
@@ -279,7 +292,7 @@ async function api(action,data={}){const requestToken=token;const r=await fetch(
 async function perform(button,fn){if(button.disabled)return;clearError();button.disabled=true;try{await fn()}catch(e){error(e)}finally{button.disabled=false}}
 function showLogin(){planLoaded=false;replyShow=null;reportedShows=null;renderVoiceMode();$('#planBalanceForm').hidden=true;$('#planBalanceFields').replaceChildren();$('#showRequests').replaceChildren();supporters=[];encouragements=[];stampDefinitions=[];resetAnalysis();planSettingsRequest=null;pendingGraduation=null;targets=[];targetState={};++targetRequestSerial;$('#targets').replaceChildren();todayPlan=null;actorId='';if($('#stampDialog').open)$('#stampDialog').close();difficultOffset=0;difficultResolved.clear();$('#difficultSection').classList.remove('has-difficulties');$('#supporterList').replaceChildren();$('#activeSupporter').replaceChildren();++difficultSerial;$('#difficultList').replaceChildren();state=null;$('#loginPage').hidden=false;$('#app').hidden=true;$('#nav').hidden=true;$('#logout').hidden=true;$('#pageTitle').textContent='お子さまの学びと、つながる。'}
 function showApp(){$('#loginPage').hidden=true;$('#app').hidden=false;$('#nav').hidden=false;$('#logout').hidden=false;switchPage(page)}
-function switchPage(next){if(!['home','stats','talk','settings'].includes(next))next='home';page=next;for(const p of ['home','stats','talk','settings'])$('#'+p+'Page').hidden=p!==next;document.querySelectorAll('[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===next));$('#pageTitle').textContent=({home:'きょうの学習',stats:'分析・管理',talk:'声とスタンプ',settings:'保護者の設定'})[next];if(state&&next==='stats'){void loadStatistics();if($('#analysisBalance').open)void loadPlanSettings();}if(state&&next==='settings'){loadPlanSettings();renderPin();renderMyName();if(!targets.length)loadTargets().catch(error)}if(state&&next==='talk'){renderMessages();loadMedalOptions().catch(error)}}
+function switchPage(next){if(!['home','stats','talk','settings'].includes(next))next='home';if(page!==next)$('#managerScroll').scrollTop=0;page=next;for(const p of ['home','stats','talk','settings'])$('#'+p+'Page').hidden=p!==next;document.querySelectorAll('[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===next));$('#pageTitle').textContent=({home:'きょうの学習',stats:'分析・管理',talk:'声とスタンプ',settings:'保護者の設定'})[next];if(state&&next==='stats'){void loadStatistics();if($('#analysisBalance').open)void loadPlanSettings();}if(state&&next==='settings'){loadPlanSettings();renderPin();renderMyName();if(!targets.length)loadTargets().catch(error)}if(state&&next==='talk'){renderMessages();loadMedalOptions().catch(error)}}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{clearError();switchPage(b.dataset.page)});
 function day(t){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(t))}
 function time(t){return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}).format(new Date(t))}
@@ -939,7 +952,7 @@ function renderSupporterManagement(force=false){const h=$('#supporterList');if(!
 $('#supporterAddForm').onsubmit=e=>{e.preventDefault();perform($('#supporterAddSave'),async()=>{await saveActor($('#supporterAddName').value,$('#supporterAddColor').value,null);$('#supporterAddName').value='';toast('管理する人を追加しました。')})};
 if(token)refresh().catch(error);else showLogin();
 </script><script>
-// Streamlit sizes the iframe. Keep page scrolling on the document inside it.
+// The iframe fits the host viewport. The main panel owns vertical scrolling.
 (function sizeManagerFrame() {
   if (parent === window) return;
   const post = (type, data) => parent.postMessage({ isStreamlitMessage: true, type, ...data }, '*');
@@ -969,12 +982,8 @@ if(token)refresh().catch(error);else showLogin();
     return;
   }
 
-  // A differently hosted parent cannot expose its viewport. Expand to the content.
-  document.documentElement.classList.add('content-sized-frame');
-  const layout = document.querySelector('.layout');
-  const resizeToContent = () => sendHeight(Math.ceil(layout.getBoundingClientRect().height));
-  new ResizeObserver(resizeToContent).observe(layout);
-  resizeToContent();
+  // The main panel also scrolls when an embedded host withholds its dimensions.
+  sendHeight(Math.min(680, screen.availHeight || 680));
 })();
 </script><script>try{if(typeof render==='function'){const original=render;render=function(...a){const r=original.apply(this,a);window.__cmUxDiagnosticsV2?.ready('render');return r}}}catch{}try{if(typeof bridge==='function'){const original=bridge;bridge=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}try{if(typeof post==='function'){const original=post;post=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}try{if(typeof valuePost==='function'){const original=valuePost;valuePost=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}</script></body></html>
 '''
