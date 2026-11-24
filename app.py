@@ -23,7 +23,7 @@ FRONTEND = r'''<!doctype html>
 let w=window,d=document;
 if(cfg.parent){try{w=parent;d=w.document}catch{w=window;d=document}}
 if(w.__cmUxDiagnosticsV2){w.__cmUxDiagnosticsV2.mount();return}
-const LIMIT=1500,KEY='cm_ux_v2:'+cfg.source,BUILD='20261121.ux2';
+const LIMIT=1500,KEY='cm_ux_v2:'+cfg.source,BUILD='20261125.ux3';
 let rows=[],dropped=0,storage='available',timer=null,pending=null,quiet=null;
 const id=()=>w.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now();
 const clean=v=>String(v||'').replace(/https?:\/\/[^\s<>"']+/g,'[url]').replace(/(?:Bearer\s+\S+|sb_(?:secret|publishable)_\S+|eyJ[\w.-]+)/gi,'[token]').replace(/\b[a-f0-9]{24,}\b/gi,'[id]').replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[email]').slice(0,140);
@@ -45,7 +45,7 @@ function response(stage,explicit=false){
  },180);
 }
 function intent(e){const t=e.target?.closest?.('button,a,input[type=range],select');if(!t||t.disabled||t.closest('[data-cm-ux-control]'))return;
- if(t.matches('input[type=range]')&&e.type==='click')return;
+ if(t.matches('input[type=range],select')&&e.type==='click')return;
  if(pending)log('action_interrupted',pending.action,{action_id:pending.id,status:'superseded'});
  const action=t.id||t.getAttribute('aria-label')||t.textContent?.trim()||t.tagName;
  const p={id:id(),action:clean(action),start:w.performance.now(),first:false,changes:0,network:0,bridge:false};pending=p;
@@ -63,8 +63,8 @@ function attach(){if(d.body)obs.observe(d.body,{childList:true,subtree:true,char
 function safePath(url){try{return new URL(url,w.location.href).pathname.replace(/[a-f0-9-]{24,}/gi,'[id]').slice(0,100)}catch{return '[unknown]'}}
 const originalFetch=w.fetch;
 if(originalFetch)w.fetch=async function(input,options){const p=pending,began=w.performance.now(),path=safePath(typeof input==='string'?input:input?.url);if(p)p.network++;
- try{const result=await originalFetch.apply(this,arguments);log('network','fetch',{endpoint:path,method:options?.method||input?.method||'GET',http_status:result.status,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:result.ok?'ok':'error'});return result}
- catch(e){log('network','fetch',{endpoint:path,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:'error',error_type:e?.name});throw e}
+ try{const result=await originalFetch.apply(this,arguments);log('network',options?.cmAction||'fetch',{endpoint:path,method:options?.method||input?.method||'GET',http_status:result.status,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:result.ok?'ok':'error'});return result}
+ catch(e){log('network',options?.cmAction||'fetch',{endpoint:path,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:'error',error_type:e?.name});throw e}
  finally{if(p&&pending===p){p.network--;response('network_finished')}}
 };
 w.addEventListener('error',e=>log('browser_error','uncaught',{error_type:e.error?.name||'resource_error',line:e.lineno,status:'error'}),true);
@@ -282,21 +282,59 @@ function cmStampArt(key,color){return CM_STAMP_ART[key]?.[color]||CM_STAMP_ART.f
 </script><script>'use strict';
 const API='https://keewulninyoeylgflshb.supabase.co/functions/v1/chokomana-watch';
 const $=s=>document.querySelector(s), STORE='chokomana_watch_session_v1';
-let token=localStorage.getItem(STORE)||'',state=null,page='home',pollBusy=false,targets=[],targetState={},offset=0,recorder=null,stream=null,blob=null,previewURL=null,recordAt=0,recordTimer=null,voiceId=null,messageSignature='',toastTimer;
+let token=localStorage.getItem(STORE)||'',state=null,page='home',pollBusy=false,dashboardAt=0,homeExtrasAt=0,targets=[],targetState={},offset=0,recorder=null,stream=null,blob=null,previewURL=null,recordAt=0,recordTimer=null,voiceId=null,messageSignature='',toastTimer;
 $('#date').textContent=new Intl.DateTimeFormat('ja-JP',{dateStyle:'full',timeZone:'Asia/Tokyo'}).format(new Date());
 for(let i=1;i<=100;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'歳';$('#age').append(o)}
 function toast(text){$('#toast').textContent=text;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4500)}
 function error(e){$('#alert').textContent=e.message||String(e);$('#alert').hidden=false}
 function clearError(){$('#alert').hidden=true}
-async function api(action,data={}){const requestToken=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','X-CM-Session':token},body:JSON.stringify({action,...data}),signal:AbortSignal.timeout(30000)});const result=await r.json();if(!r.ok){if(r.status===401&&action!=='login'&&token===requestToken){token='';localStorage.removeItem(STORE);showLogin()}throw new Error(result.error||'通信に失敗しました。')}return result}
+async function api(action,data={}){const requestToken=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','X-CM-Session':token},body:JSON.stringify({action,...data}),cmAction:action,signal:AbortSignal.timeout(30000)});const result=await r.json();if(!r.ok){if(r.status===401&&action!=='login'&&token===requestToken){token='';localStorage.removeItem(STORE);showLogin()}throw new Error(result.error||'通信に失敗しました。')}return result}
 async function perform(button,fn){if(button.disabled)return;clearError();button.disabled=true;try{await fn()}catch(e){error(e)}finally{button.disabled=false}}
-function showLogin(){planLoaded=false;replyShow=null;reportedShows=null;renderVoiceMode();$('#planBalanceForm').hidden=true;$('#planBalanceFields').replaceChildren();$('#showRequests').replaceChildren();supporters=[];encouragements=[];stampDefinitions=[];resetAnalysis();planSettingsRequest=null;pendingGraduation=null;targets=[];targetState={};++targetRequestSerial;$('#targets').replaceChildren();todayPlan=null;actorId='';if($('#stampDialog').open)$('#stampDialog').close();difficultOffset=0;difficultResolved.clear();$('#difficultSection').classList.remove('has-difficulties');$('#supporterList').replaceChildren();$('#activeSupporter').replaceChildren();++difficultSerial;$('#difficultList').replaceChildren();state=null;$('#loginPage').hidden=false;$('#app').hidden=true;$('#nav').hidden=true;$('#logout').hidden=true;$('#pageTitle').textContent='お子さまの学びと、つながる。'}
+function showLogin(){dashboardAt=0;homeExtrasAt=0;planLoaded=false;replyShow=null;reportedShows=null;renderVoiceMode();$('#planBalanceForm').hidden=true;$('#planBalanceFields').replaceChildren();$('#showRequests').replaceChildren();supporters=[];encouragements=[];stampDefinitions=[];resetAnalysis();planSettingsRequest=null;pendingGraduation=null;targets=[];targetState={};++targetRequestSerial;$('#targets').replaceChildren();todayPlan=null;actorId='';if($('#stampDialog').open)$('#stampDialog').close();difficultOffset=0;difficultResolved.clear();$('#difficultSection').classList.remove('has-difficulties');$('#supporterList').replaceChildren();$('#activeSupporter').replaceChildren();++difficultSerial;$('#difficultList').replaceChildren();state=null;$('#loginPage').hidden=false;$('#app').hidden=true;$('#nav').hidden=true;$('#logout').hidden=true;$('#pageTitle').textContent='お子さまの学びと、つながる。'}
 function showApp(){$('#loginPage').hidden=true;$('#app').hidden=false;$('#nav').hidden=false;$('#logout').hidden=false;switchPage(page)}
-function switchPage(next){if(!['home','stats','talk','settings'].includes(next))next='home';if(page!==next)$('#managerScroll').scrollTop=0;page=next;for(const p of ['home','stats','talk','settings'])$('#'+p+'Page').hidden=p!==next;document.querySelectorAll('[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===next));$('#pageTitle').textContent=({home:'きょうの学習',stats:'分析・管理',talk:'声とスタンプ',settings:'保護者の設定'})[next];if(state&&next==='stats'){void loadStatistics();if($('#analysisBalance').open)void loadPlanSettings();}if(state&&next==='settings'){loadPlanSettings();renderPin();renderMyName();if(!targets.length)loadTargets().catch(error)}if(state&&next==='talk'){renderMessages();loadMedalOptions().catch(error)}}
+function switchPage(next) {
+  if (!['home','stats','talk','settings'].includes(next)) next = 'home';
+  const changed = page !== next;
+  if (changed) {
+    $('#managerScroll').scrollTop = 0;
+    if (page === 'settings' && next !== 'stats') analysis.returnFromPin = false;
+  }
+  page = next;
+  for (const name of ['home','stats','talk','settings']) $('#' + name + 'Page').hidden = name !== next;
+  document.querySelectorAll('[data-page]').forEach(button => button.classList.toggle('active', button.dataset.page === next));
+  $('#pageTitle').textContent = ({home:'きょうの学習',stats:'分析・管理',talk:'声とスタンプ',settings:'保護者の設定'})[next];
+  if (!state) return;
+  if (next === 'stats') {
+    void loadStatistics();
+    if ($('#analysisBalance').open) void loadPlanSettings();
+  }
+  if (next === 'settings') {
+    renderPin();
+    renderMyName();
+    if (!analysis.returnFromPin && !targets.length) loadTargets().catch(error);
+  }
+  if (next === 'talk') {
+    renderMessages();
+    if ($('#voiceMode').value === 'medals') loadMedalOptions().catch(error);
+    if (!supporters.length) loadEncouragement().catch(error);
+  }
+  if (next === 'home' && changed) renderHome();
+  if (changed && ((next === 'home' && !homeExtrasAt) ||
+      ((next === 'home' || next === 'talk') && Date.now() - dashboardAt >= 15000))) {
+    refresh(false).catch(error);
+  }
+}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{clearError();switchPage(b.dataset.page)});
-function day(t){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(t))}
-function time(t){return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}).format(new Date(t))}
-function stampDate(t){return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(t))}
+$('.brand').onclick = event => {
+  event.preventDefault();
+  if (state) switchPage('home');
+};
+const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit' });
+const timeFormat = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', hour:'2-digit', minute:'2-digit' });
+const stampDateFormat = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+const day = value => dayFormat.format(new Date(value));
+const time = value => timeFormat.format(new Date(value));
+const stampDate = value => stampDateFormat.format(new Date(value));
 function textNode(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n}
 let difficultOffset=0,difficultSerial=0,difficultBusy=false;
 const difficultResolved=new Set();
@@ -313,7 +351,29 @@ async function loadDifficult(){
   const add=(title,value)=>{if(value==null||value==='')return;const p=textNode('p',title+'：'+plain(typeof value==='string'?value:JSON.stringify(value)));details.append(p)};
   add('問題ID',row.question_id);add('本文',q.passage);add('選択肢',q.options);add('答え',q.answer??q.correct_answer??q.correct_option_id);add('解説',q.explanation??q.reason??q.solution);add('ヒント',q.hint);add('ことば',snapshot.word);
   const raw=document.createElement('details');raw.append(textNode('summary','保存した問題情報'),textNode('pre',JSON.stringify(snapshot,null,2)));details.append(raw);body.append(details);
-  const resolve=textNode('button','解決','secondary');resolve.type='button';resolve.onclick=()=>perform(resolve,async()=>{difficultBusy=true;try{await api('difficult_resolve',{id:row.id});difficultResolved.add(row.id);++difficultSerial;card.remove();await loadDifficult();toast('解決にしました。未解決の一覧から除きました。')}finally{difficultBusy=false}});card.append(body,resolve);host.append(card);
+   const resolve = textNode('button', '解決', 'secondary');
+  resolve.type = 'button';
+  resolve.onclick = () => perform(resolve, async () => {
+    const owner = token;
+    difficultBusy = true;
+    resolve.textContent = '更新中…';
+    try {
+      await api('difficult_resolve', { id: row.id });
+      if (token !== owner) return;
+      difficultResolved.add(row.id);
+      ++difficultSerial;
+      card.remove();
+      toast('解決にしました。未解決の一覧から除きました。');
+      await loadDifficult().catch(() => {
+        if (token === owner) $('#difficultStatus').textContent = '最新の件数を取得できませんでした。';
+      });
+    } finally {
+      difficultBusy = false;
+      resolve.textContent = '解決';
+    }
+  });
+  card.append(body, resolve);
+  host.append(card);
  }
  $('#difficultPrev').disabled=difficultOffset===0;$('#difficultNext').disabled=difficultOffset+r.rows.length>=r.total;$('#difficultPage').textContent=r.total?((difficultOffset+1)+'〜'+Math.min(difficultOffset+r.rows.length,r.total)+' / '+r.total+'件'):'';
  $('#difficultStatus').textContent='解説したら「解決」を押してください。';
@@ -361,7 +421,8 @@ const ANALYSIS_DATE = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo',
 let analysis = newAnalysisState();
 
 function newAnalysisState() {
-  return { units: null, loadedAt: 0, request: null, detail: null, openKey: null, saving: false, returnFromPin: false };
+  return { units: null, loadedAt: 0, request: null, detail: null, openKey: null, saving: false,
+    returnFromPin: false, pinScroll: 0, tableRows: new WeakMap() };
 }
 function resetAnalysis() {
   analysis = newAnalysisState();
@@ -390,7 +451,7 @@ function averageLabel(rate, count, size) {
 
 async function loadStatistics(force = false) {
   const current = analysis;
-  if (!force && current.request) return current.request;
+  if (current.request) return current.request;
   if (!force && current.units && Date.now() - current.loadedAt < 30000) return;
   if (force) {
     current.loadedAt = 0;
@@ -407,6 +468,7 @@ async function loadStatistics(force = false) {
     const result = await request;
     if (analysis !== current || current.request !== request) return;
     current.units = result.units;
+    current.tableRows = new WeakMap();
     current.loadedAt = Date.now();
     status.textContent = '';
     renderStatistics();
@@ -426,7 +488,8 @@ async function loadStatistics(force = false) {
 function syncAnalysisButtons() {
   const locked = analysis.saving || analysis.request || !analysis.loadedAt;
   for (const button of $('#statsPage').querySelectorAll('[data-analysis-action]')) {
-    button.disabled = Boolean(locked) || button.dataset.blocked === 'true';
+    const disabled = Boolean(locked) || button.dataset.blocked === 'true';
+    if (disabled !== button.disabled) button.disabled = disabled;
   }
 }
 function analysisButton(unit, kind, priority = false) {
@@ -443,14 +506,15 @@ function analysisButton(unit, kind, priority = false) {
   button.dataset.blocked = String((focus && unit.graduated) || (priority && active));
   button.setAttribute('aria-label', unit.label + 'の' +
     (focus ? (active ? '重点を解除' : '重点単元に設定') : (active ? '修了認定を取り消す' : '修了認定する')));
-  button.onclick = () => changeAnalysisUnit(unit, kind, active);
+  button.onclick = () => changeAnalysisUnit(unit, kind, active, button);
   return button;
 }
-async function changeAnalysisUnit(unit, kind, active) {
+async function changeAnalysisUnit(unit, kind, active, button) {
   const current = analysis;
   if (current.saving || current.request || !current.loadedAt) return;
   if (!unlocked()) {
     current.returnFromPin = true;
+    current.pinScroll = $('#managerScroll').scrollTop;
     redirectToPin();
     return;
   }
@@ -459,20 +523,31 @@ async function changeAnalysisUnit(unit, kind, active) {
   $('#statsRefresh').disabled = true;
   syncAnalysisButtons();
   const focus = kind === 'focus';
+  const buttonLabel = button?.textContent;
+  if (button) button.textContent = '保存中…';
+  let refreshNeeded = false;
   try {
-    await api('analysis_set', {
+    const result = await api('analysis_set', {
       source_app: unit.source_app, menu_id: unit.menu_id, kind, enabled: !active,
       base_version: (focus ? unit.focus_version : unit.graduation_version) ?? null,
     });
     if (analysis !== current) return;
+    if (result.preference && typeof result.preference.graduated === 'boolean') {
+      current.units = current.units.map(row => row === unit ? { ...row, ...result.preference } : row);
+      renderStatistics();
+    } else {
+      refreshNeeded = true;
+    }
     const message = focus ? (active ? '重点を解除しました。' : '重点単元に設定しました。')
       : (active ? '修了認定を取り消しました。' : '修了認定しました。');
     toast(unit.label + (active ? 'の' : 'を') + message);
   } catch (e) {
-    if (analysis === current) error(e);
+    if (analysis === current) { error(e); toast(e.message); }
+    refreshNeeded = true;
   } finally {
     if (analysis === current) {
-      await loadStatistics(true);
+      if (button) button.textContent = buttonLabel;
+      if (refreshNeeded) await loadStatistics(true);
       if (analysis === current) {
         current.saving = false;
         $('#statsRefresh').disabled = false;
@@ -637,19 +712,25 @@ function renderAnalysisTable() {
   }
   const body = table.createTBody();
   for (const unit of sorted) {
-    const row = body.insertRow();
-    const [short, long, count, trend] = unit.moving;
+    let row = analysis.tableRows.get(unit);
+    if (!row) {
+      row = document.createElement('tr');
+      const [short, long, count, trend] = unit.moving;
+      const title = textNode('th', unit.label);
+      title.scope = 'row';
+      row.append(title);
+      const values = [
+        averageLabel(short, count, 5), averageLabel(long, count, 15), trend,
+        unit.rate == null ? '—' : analysisPercent(unit.rate, 0), unit.total ? unit.correct : '—',
+        unit.total, unit.attempts, unit.last ? ANALYSIS_DATE.format(new Date(unit.last)) : '—',
+      ];
+      for (const value of values) row.insertCell().textContent = value;
+      for (const kind of ['focus', 'unit']) row.insertCell().append(analysisButton(unit, kind));
+      analysis.tableRows.set(unit, row);
+    }
     const label = unit.label + (source ? '' : '（' + ANALYSIS_NAMES[unit.source_app] + '）');
-    const title = textNode('th', label);
-    title.scope = 'row';
-    row.append(title);
-    const values = [
-      averageLabel(short, count, 5), averageLabel(long, count, 15), trend,
-      unit.rate == null ? '—' : analysisPercent(unit.rate, 0), unit.total ? unit.correct : '—',
-      unit.total, unit.attempts, unit.last ? ANALYSIS_DATE.format(new Date(unit.last)) : '—',
-    ];
-    for (const value of values) row.insertCell().textContent = value;
-    for (const kind of ['focus', 'unit']) row.insertCell().append(analysisButton(unit, kind));
+    if (row.firstElementChild.textContent !== label) row.firstElementChild.textContent = label;
+    body.append(row);
   }
   host.append(table);
   host.scrollLeft = left;
@@ -682,6 +763,10 @@ let replyShow = null;
 let reportedShows = null;
 
 function redirectToPin() {
+  if (page === 'stats') {
+    analysis.returnFromPin = true;
+    analysis.pinScroll = $('#managerScroll').scrollTop;
+  }
   switchPage('settings');
   $('#pinForm').scrollIntoView({block: 'center'});
   $('#pinForm input').focus();
@@ -723,7 +808,7 @@ function renderPlanSettings(settings, preserveDraft = false) {
       button.type = 'button';
       button.setAttribute('aria-label', name + 'を' + (stopped ? '再開する' : '自動出題から外す'));
       button.onclick = () => {
-        if (!unlocked()) { analysis.returnFromPin = page === 'stats'; return redirectToPin(); }
+        if (!unlocked()) return redirectToPin();
         if (planSettingsRequest) return;
         const actor = token;
         planSettingsRequest = perform(button, async () => {
@@ -763,7 +848,7 @@ $('#analysisBalance').ontoggle = () => {
 $('#reloadPlanSettings').onclick = () => loadPlanSettings(true);
 $('#planBalanceForm').onsubmit = event => {
   event.preventDefault();
-  if (!unlocked()) { analysis.returnFromPin = page === 'stats'; return redirectToPin(); }
+  if (!unlocked()) return redirectToPin();
   if (planSettingsRequest) return;
   const actor = token;
   const values = Object.fromEntries([...new FormData(event.currentTarget)].map(([key, value]) => [key, Number(value)]));
@@ -860,7 +945,10 @@ function renderVoiceMode() {
   $('#replyShowLabel').textContent = replyShow ? plain(replyShow.label) + ' へのお返事' : '';
 }
 
-$('#voiceMode').onchange = renderVoiceMode;
+$('#voiceMode').onchange = () => {
+  renderVoiceMode();
+  if ($('#voiceMode').value === 'medals') loadMedalOptions().catch(error);
+};
 $('#cancelShowReply').onclick = () => {
   if (recorder?.state === 'recording') return toast('録音を止めてから、お返事を解除してください。');
   if (blob) discard();
@@ -870,7 +958,48 @@ $('#cancelShowReply').onclick = () => {
 };
 renderVoiceMode();
 
-async function refresh(){if(!token||pollBusy)return;const owner=token;pollBusy=true;try{const dashboard=await api('dashboard');if(token!==owner)return;state=dashboard;showApp();renderHome();refreshDifficult();loadShowRequests();Promise.all([loadEncouragement(),loadTodayPlan()]).then(()=>{if(state){renderHome();renderTodayPlan()}}).catch(error);renderPin();renderMessages();$('#pushFailures').textContent=state.failed_deliveries?'送信できなかった通知があります。通知の再登録とテストをお試しください。':'通知の送信エラーは記録されていません。';if(!$('#ageForm').contains(document.activeElement))$('#age').value=state.age||5;await renderPush()}finally{pollBusy=false}}
+async function refresh(manual = true) {
+  if (!token || pollBusy) return;
+  const owner = token;
+  pollBusy = true;
+  try {
+    const dashboard = await api('dashboard');
+    if (token !== owner) return;
+    const first = !state;
+    // A dashboard read begun before PIN verification can finish after it.
+    if (!first && Date.parse(state.pin_until) > Date.now() &&
+        !(Date.parse(dashboard.pin_until) >= Date.parse(state.pin_until))) {
+      dashboard.pin_until = state.pin_until;
+      dashboard.pin_set = true;
+    }
+    state = dashboard;
+    dashboardAt = Date.now();
+    if (first) showApp();
+    renderPin();
+    renderMessages();
+    $('#unread').hidden = !state.messages.some(message => message.sender === 'child' && !message.read_at);
+    $('#pushFailures').textContent = state.failed_deliveries
+      ? '送信できなかった通知があります。通知の再登録とテストをお試しください。'
+      : '通知の送信エラーは記録されていません。';
+    if (!$('#ageForm').contains(document.activeElement)) $('#age').value = state.age || 5;
+    if (first) await renderPush();
+    if (page === 'home') {
+      renderHome();
+      if (manual || Date.now() - homeExtrasAt >= 60000) {
+        homeExtrasAt = Date.now();
+        void refreshDifficult();
+        void loadShowRequests();
+        void loadTodayPlan().catch(error);
+        void loadEncouragement().then(() => {
+          if (token === owner && page === 'home') { renderHome(); renderTodayPlan(); }
+        }).catch(error);
+      }
+    }
+  } finally {
+    pollBusy = false;
+  }
+}
+
 function renderHome(){const today=day(new Date()),events=state.events.filter(e=>day(e.created_at)===today),messages=state.messages;$('#learner').textContent=state.username;
  $('#completed').replaceChildren(document.createTextNode(events.filter(e=>e.kind==='unit_completed').length),textNode('small','回'));$('#started').replaceChildren(document.createTextNode(state.started_today??events.filter(e=>e.kind==='unit_started').length),textNode('small','回'));$('#voices').replaceChildren(document.createTextNode(messages.filter(e=>e.sender==='child'&&day(e.created_at)===today).length),textNode('small','件'));
  const latestDone=state.events.find(e=>e.kind==='unit_completed'&&day(e.created_at)===today);$('#lastActivity').textContent=latestDone?'最近の完了：'+time(latestDone.created_at)+' '+latestDone.title:'学習をやり遂げると、きょうのあしあとに表示します。';$('#syncTime').textContent=time(state.server_time)+' 更新';
@@ -923,8 +1052,52 @@ $('#discardVoice').onclick=discard;
 $('#sendVoice').onclick=()=>perform($('#sendVoice'),async()=>{if(!blob)throw new Error('先に録音してください。');const mode=$('#voiceMode').value;const requirements=mode==='medals'?collectRequirements():[];if(blob.size>3145728)throw new Error('録音の容量が大きすぎます。短く録り直してください。');const audio=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(blob)});await api('send',{kind:'voice',audio,mime:blob.type,request_id:voiceId,title:$('#messageTitle').value,requirements,voice_mode:mode,show_id:replyShow?.id});discard();replyShow=null;renderVoiceMode();$('#messageTitle').value='';$('#requirementRows').replaceChildren();addRequirement();toast('声のおたよりを送りました。');await refresh()});
 let pendingGraduation=null;
 function unlocked(){return state?.pin_until&&Date.parse(state.pin_until)>Date.now()}
-function renderPin(){if(!state)return;const setup=!state.pin_set;$('#pinConfirm').hidden=!setup;$('#pinSubmit').textContent=setup?'PINを設定':'PINで解除';$('#pinState').textContent=setup?'最初に、保護者だけが知っている数字6桁のPINを設定してください。':unlocked()?'設定の変更ができます（解除から10分間）。':'年齢・修了認定・学習設定の変更には、管理用PINが必要です。';$('#ageForm button').disabled=!unlocked();document.querySelectorAll('.target button').forEach(b=>b.disabled=false);}
-$('#pinForm').onsubmit=e=>{e.preventDefault();const f=e.currentTarget;perform(f.querySelector('button'),async()=>{const r=await api(state.pin_set?'pin_unlock':'pin_setup',Object.fromEntries(new FormData(f)));state.pin_set=true;state.pin_until=r.unlocked_until;f.reset();renderPin();toast('10分間、設定を変更できます。');if(analysis.returnFromPin){analysis.returnFromPin=false;switchPage('stats');return}await loadTargets();if(pendingGraduation){const key=pendingGraduation.key;pendingGraduation=null;const index=targets.findIndex(t=>t.target_key===key);$('#targets').children[index]?.scrollIntoView({block:'center',behavior:'smooth'})}})};
+let pinChecking = false;
+function renderPin() {
+  if (!state) return;
+  const setup = !state.pin_set;
+  $('#pinConfirm').hidden = !setup;
+  $('#pinSubmit').textContent = pinChecking ? 'PINを確認中…' : setup ? 'PINを設定' : 'PINで解除';
+  $('#pinState').textContent = pinChecking ? '確認が終わるまでお待ちください。'
+    : setup ? '最初に、保護者だけが知っている数字6桁のPINを設定してください。'
+    : unlocked() ? '設定の変更ができます（解除から10分間）。'
+    : '年齢・修了認定・学習設定の変更には、管理用PINが必要です。';
+  $('#ageForm button').disabled = !unlocked();
+}
+
+$('#pinForm').onsubmit = event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const owner = token;
+  return perform($('#pinSubmit'), async () => {
+    pinChecking = true;
+    renderPin();
+    try {
+      const result = await api(state.pin_set ? 'pin_unlock' : 'pin_setup',
+        Object.fromEntries(new FormData(form)));
+      if (owner !== token || !state) return;
+      state.pin_set = true;
+      state.pin_until = result.unlocked_until;
+      form.reset();
+      toast('10分間、設定を変更できます。');
+      if (analysis.returnFromPin && page === 'settings') {
+        analysis.returnFromPin = false;
+        switchPage('stats');
+        $('#managerScroll').scrollTop = analysis.pinScroll;
+      } else if (pendingGraduation) {
+        const key = pendingGraduation.key;
+        pendingGraduation = null;
+        const index = targets.findIndex(target => target.target_key === key);
+        $('#targets').children[index]?.scrollIntoView({ block: 'center' });
+      } else if (page === 'settings' && !targets.length) {
+        void loadTargets().catch(error);
+      }
+    } finally {
+      pinChecking = false;
+      renderPin();
+    }
+  });
+};
 $('#ageForm').onsubmit=e=>{e.preventDefault();perform(e.currentTarget.querySelector('button'),async()=>{await api('age',{age:Number($('#age').value)});toast('年齢を変更しました。');await refresh()})};
 let targetRequestSerial=0;
 async function loadTargets(more=false){const serial=++targetRequestSerial;const source=$('#subject').value;if(!more){targets=[];offset=0}const r=await api('targets',{source_app:source,offset,target_type:$('#targetType').value,search:$('#targetSearch').value});if(serial!==targetRequestSerial)return;targets=[...new Map([...targets,...r.targets].map(t=>[t.target_key,t])).values()];offset+=r.targets.length;targetState=r.state.items||{};$('#loadMore').hidden=!(r.has_more??(r.targets.length===200));renderTargets()}
@@ -932,7 +1105,11 @@ function renderTargets(){const host=$('#targets');host.replaceChildren();if(!tar
  for(const t of targets){const item=targetState[t.target_key],done=!!item?.record,row=textNode('div','','target'+(done?' done':'')),label=textNode('div',t.label,'grow');label.append(textNode('small',done?'修了認定済み':'未認定'));const b=textNode('button',done?'認定を解除':'修了にする',done?'text':'secondary');b.disabled=false;b.onclick=()=>{if(!unlocked()){pendingGraduation={source:t.source_app,key:t.target_key};$('#pinForm').scrollIntoView({block:'center',behavior:'smooth'});$('#pinForm input').focus();toast('修了認定には管理用PINを入力してください。');return}return perform(b,async()=>{try{await api('graduate',{source_app:t.source_app,target_key:t.target_key,base_version:item?.version??null,enabled:!done});analysis.loadedAt=0;toast(done?'修了認定を解除しました。':'修了として認定しました。');}finally{await loadTargets()}})};row.append(label,b);host.append(row)}}
 $('#subject').onchange=()=>loadTargets().catch(error);$('#targetType').onchange=()=>loadTargets().catch(error);let searchTimer;$('#targetSearch').oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadTargets().catch(error),350)};$('#loadMore').onclick=()=>perform($('#loadMore'),()=>loadTargets(true));
 $('#auditBtn').onclick=()=>perform($('#auditBtn'),async()=>{const r=await api('audit');const host=$('#audit');host.replaceChildren();if(!r.rows.length)host.textContent='まだ変更履歴はありません。';for(const a of r.rows)host.append(textNode('div',stampDate(a.created_at)+'　'+(a.action==='age'?'年齢：'+a.detail.age+'歳':a.action==='focus'?(a.detail.enabled?'重点に設定：':'重点を解除：')+a.detail.target_key:(a.detail.enabled?'修了認定：':'認定解除：')+a.detail.target_key),'audit-row'))});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRecording();else if(token)refresh().catch(error)});window.addEventListener('online',()=>{if(token)refresh().catch(error)});setInterval(()=>{if(token&&!document.hidden)refresh().catch(e=>{$('#syncTime').textContent='接続を再確認中';error(e)})},15000);setInterval(renderPin,10000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRecording();else if(token)refresh().catch(error)});window.addEventListener('online',()=>{if(token)refresh().catch(error)});setInterval(() => {
+  if (token && !document.hidden && (page === 'home' || page === 'talk')) {
+    refresh(false).catch(() => { $('#syncTime').textContent = '接続を再確認中'; });
+  }
+}, 30000);setInterval(renderPin,10000);
 
 for(const [value,label] of Object.entries(ANALYSIS_NAMES)){const o=document.createElement('option');o.value=value;o.textContent=label;$('#statsSubject').append(o)}
 
