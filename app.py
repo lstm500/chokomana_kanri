@@ -13,7 +13,8 @@ st.set_page_config(page_title="ちょこまな みまもり", page_icon="🍀",
 st.markdown(
     '<style>[data-testid="stHeader"],#MainMenu,footer{display:none}'
     '.block-container{padding:0!important;max-width:none!important}'
-    'iframe{display:block;border:0}</style>', unsafe_allow_html=True,
+    'iframe[title*="chokomana_manager_"]{display:block;width:100%;border:0}</style>',
+    unsafe_allow_html=True,
 )
 
 FRONTEND = r'''<!doctype html>
@@ -128,26 +129,25 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 #statsRefresh { white-space: nowrap; }
 #statsStatus:empty { display: none; }
 #statsTable {
-  max-height: 415px;
-  overflow: auto;
+  overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 10px;
 }
 #statsTable:empty { display: none; }
-#statsTable table { display: table; width: 100%; min-width: 970px; border-collapse: separate; border-spacing: 0; }
+#statsTable table { display: table; width: 100%; min-width: 880px; border-collapse: separate; border-spacing: 0; }
 #statsTable thead { display: table-header-group; }
 #statsTable tbody { display: table-row-group; }
 #statsTable tr { display: table-row; }
 #statsTable th, #statsTable td {
   display: table-cell;
-  padding: 8px 9px;
+  padding: 8px 6px;
   vertical-align: middle;
   text-align: center;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 #statsTable td::before { content: none; }
-#statsTable thead th { position: sticky; top: 0; z-index: 2; background: #e9f3ee; }
+#statsTable thead th { background: #e9f3ee; }
 #statsTable tr > :first-child {
   position: sticky;
   left: 0;
@@ -160,7 +160,6 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
   overflow-wrap: anywhere;
   border-right: 1px solid var(--line);
 }
-#statsTable thead th:first-child { z-index: 3; }
 #statsTable tbody th { background: #fff; font-weight: 600; }
 #statsTable tbody tr:nth-child(even) > * { background: #f8fbf9; }
 #statsTable button { min-height: 36px; padding: 5px 9px; font-size: 12px; white-space: nowrap; }
@@ -192,6 +191,13 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 @media (max-width: 520px) {
   .analysis-priority-row { grid-template-columns: minmax(0, 1fr); }
   #statsTable tr > :first-child { min-width: 106px; width: 106px; max-width: 128px; }
+}
+.content-sized-frame .layout { min-height: 0; }
+.content-sized-frame aside { grid-area: 1 / 1; position: static; height: auto; align-self: start; }
+.content-sized-frame .login-layout { min-height: 0; }
+.content-sized-frame #stampDialog { max-height: min(680px, 90dvh); }
+@media (max-width: 700px) {
+  .content-sized-frame #nav { position: static; }
 }
 </style></head>
 <body><div class="layout"><aside><a class="brand" href="#home"><span class="brandmark">ち</span><span>ちょこまな<small>みまもり</small></span></a><div class="side-note">離れていても、<br>がんばりのそばに。</div><nav id="nav" hidden><button data-page="home">◉ <span>きょうの学習</span></button><button data-page="stats">▥ <span>分析・管理</span></button><button data-page="talk">♬ <span>声とスタンプ</span><i id="unread" hidden></i></button><button data-page="settings">⚙ <span>保護者の設定</span></button></nav><div class="side-bottom"><span class="leaf">❧</span><p>小さな「できた！」を、<br>いっしょに。</p><small>CHOKOMANA MIMAMORI</small></div></aside>
@@ -603,7 +609,6 @@ function renderAnalysisTable() {
     '単元 · 修了認定済み ' + units.filter(unit => unit.graduated).length + '単元';
   const host = $('#statsTable');
   const left = host.scrollLeft;
-  const top = host.scrollTop;
   host.replaceChildren();
   if (!sorted.length) {
     host.append(textNode('p', units.length ? '条件に合う単元はありません。' :
@@ -635,7 +640,6 @@ function renderAnalysisTable() {
   }
   host.append(table);
   host.scrollLeft = left;
-  host.scrollTop = top;
   syncAnalysisButtons();
 }
 
@@ -935,11 +939,43 @@ function renderSupporterManagement(force=false){const h=$('#supporterList');if(!
 $('#supporterAddForm').onsubmit=e=>{e.preventDefault();perform($('#supporterAddSave'),async()=>{await saveActor($('#supporterAddName').value,$('#supporterAddColor').value,null);$('#supporterAddName').value='';toast('管理する人を追加しました。')})};
 if(token)refresh().catch(error);else showLogin();
 </script><script>
-function cmFramePost(type,extra={}){parent.postMessage({isStreamlitMessage:true,type,...extra},'*')}
-cmFramePost('streamlit:componentReady',{apiVersion:1});
-const cmManagerHeight=Math.max(540,Math.min(900,(screen.availHeight||840)-140));
-document.documentElement.style.height=cmManagerHeight+'px';document.body.style.height=cmManagerHeight+'px';document.body.style.overflowY='auto';
-cmFramePost('streamlit:setFrameHeight',{height:cmManagerHeight});
+// Streamlit sizes the iframe. Keep page scrolling on the document inside it.
+(function sizeManagerFrame() {
+  if (parent === window) return;
+  const post = (type, data) => parent.postMessage({ isStreamlitMessage: true, type, ...data }, '*');
+  post('streamlit:componentReady', { apiVersion: 1 });
+
+  let heightSent = 0;
+  function sendHeight(height) {
+    const next = Math.max(1, Math.floor(height));
+    if (next === heightSent) return;
+    heightSent = next;
+    post('streamlit:setFrameHeight', { height: next });
+  }
+
+  const frame = window.frameElement;
+  if (frame) {
+    const viewport = parent.visualViewport;
+    const resizeToViewport = () => {
+      const top = viewport?.offsetTop ?? 0;
+      const bottom = top + (viewport?.height ?? frame.ownerDocument.documentElement.clientHeight);
+      sendHeight(bottom - Math.max(top, frame.getBoundingClientRect().top));
+    };
+    parent.addEventListener('resize', resizeToViewport);
+    viewport?.addEventListener('resize', resizeToViewport);
+    viewport?.addEventListener('scroll', resizeToViewport);
+    resizeToViewport();
+    window.addEventListener('load', resizeToViewport, { once: true });
+    return;
+  }
+
+  // A differently hosted parent cannot expose its viewport. Expand to the content.
+  document.documentElement.classList.add('content-sized-frame');
+  const layout = document.querySelector('.layout');
+  const resizeToContent = () => sendHeight(Math.ceil(layout.getBoundingClientRect().height));
+  new ResizeObserver(resizeToContent).observe(layout);
+  resizeToContent();
+})();
 </script><script>try{if(typeof render==='function'){const original=render;render=function(...a){const r=original.apply(this,a);window.__cmUxDiagnosticsV2?.ready('render');return r}}}catch{}try{if(typeof bridge==='function'){const original=bridge;bridge=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}try{if(typeof post==='function'){const original=post;post=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}try{if(typeof valuePost==='function'){const original=valuePost;valuePost=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}</script></body></html>
 '''
 
