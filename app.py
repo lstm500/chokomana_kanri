@@ -185,6 +185,8 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 .analysis-detail { grid-column: 1 / -1; border-top: 1px solid #dce7e2; padding-top: 9px; }
 .analysis-detail ul { margin: 8px 0 12px; padding-inline-start: 22px; }
 .analysis-advice { white-space: pre-wrap; }
+.analysis-detail h4 { margin: 14px 0 4px; }
+.analysis-detail li + li { margin-top: 6px; }
 @media (max-width: 850px) {
   #statsPage .analysis-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -421,7 +423,10 @@ const ANALYSIS_COLUMNS = ['単元', '5回平均', '15回平均', '推移', '正�
   '採点数', '学習回数', '最終学習日', '重点単元', '修了認定'];
 const REVIEW_STATUS = {
   unconfigured: 'AI分析を利用するには OPENAI_API_KEY の設定が必要です。',
-  unknown_prompts: '問題文が登録されていないため、AIでの内容分析はできません。',
+  unknown_prompts: '今回の記録に対応する問題文を取得できなかったため、内容の傾向を分析できません。',
+
+  insufficient: '誤答が多く、内容を比較できる設問がまだ2題材に満たないため、共通の傾向は保留しています。',
+  no_pattern: '今回の記録から、複数の設問に共通する傾向は確認できませんでした。',
   failed: 'AI分析を取得できませんでした。',
 };
 const ANALYSIS_DATE = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', dateStyle: 'short' });
@@ -580,10 +585,10 @@ async function requestAnalysisDetail(unit, key) {
 
 function renderAnalysisDetail(host, unit) {
   const key = analysisKey(unit);
-  host.append(textNode('strong', 'よく間違えた問題'));
+  host.append(textNode('strong', '設問別の得意・苦手'));
   const detail = analysis.detail;
   if (detail?.key !== key || detail.loading) {
-    host.append(textNode('p', '誤答記録を確認しています…', 'fine'));
+    host.append(textNode('p', '設問別の正誤と問題文を確認しています…', 'fine'));
     if (detail?.key !== key) void requestAnalysisDetail(unit, key);
     return;
   }
@@ -601,29 +606,64 @@ function renderAnalysisDetail(host, unit) {
     retry('再試行');
     return;
   }
-  const { questions, coverage, status, advice } = detail.data;
+  const { questions, coverage, window: windowSize, status, patterns, missing_prompts } = detail.data;
+  if (!Array.isArray(patterns)) {
+    host.append(textNode('p', '設問別の得意・苦手を表示するには、管理アプリとEdge Functionの両方を更新してください。', 'fine'));
+    return;
+  }
   if (!questions.length) {
-    host.append(textNode('p', '直近5回の完了記録に、問題別の誤答を確認できるデータがありません。', 'fine'));
+    host.append(textNode('p', '最近の完了記録に、設問別の正誤を確認できるデータがありません。', 'fine'));
     return;
   }
-  host.append(textNode('p', '直近5回のうち、問題別記録がある' + coverage +
-    '回を集計。誤答回数が多い順に最大6問を表示します。', 'fine'));
-  const list = document.createElement('ul');
-  for (const question of questions) {
-    const item = document.createElement('li');
-    item.append(textNode('strong', question['誤答回数'] + '誤答 / ' + question['出題回数'] + '出題'),
-      document.createTextNode('　' + question['問題']));
-    list.append(item);
+  host.append(
+    textNode('p', '直近' + windowSize + '回の完了記録のうち、設問別記録がある' + coverage +
+      '回を集計。各出題の最初の採点結果を使用しています。', 'fine'),
+    textNode('p', '2回以上出題され、正答または誤答が70％以上の設問を「得意傾向」「苦手傾向」としています。', 'fine'),
+  );
+  if (missing_prompts) {
+    host.append(textNode('p', missing_prompts + '問は問題文を照合できなかったため、内容の分析から外しています。', 'fine'));
   }
-  host.append(list, textNode('strong', '対策'));
+  host.append(textNode('strong', '間違えやすい内容の傾向'));
+  const byNumber = new Map(questions.map(row => [row.number,row]));
+  const evidenceLine = (label, numbers) => {
+    const items = numbers.map(number => byNumber.get(number)).filter(Boolean);
+    if (!items.length) return;
+    const list = document.createElement('ul');
+    for (const row of items) {
+      list.append(textNode('li', '設問' + row.number + '　' + row.prompt + '（正答' + row.correct + '回・誤答' + row.wrong + '回）'));
+    }
+    host.append(textNode('p', label, 'fine'), list);
+  };
   if (status === 'ai') {
-    host.append(textNode('p', advice, 'analysis-advice'), textNode('p', 'AIによる提案です。', 'fine'));
-    return;
+    for (const pattern of patterns) {
+      host.append(textNode('h4', pattern.title), textNode('p', pattern.explanation, 'analysis-advice'));
+      evidenceLine('根拠となる苦手設問', pattern.evidence);
+      evidenceLine('比較した得意設問', pattern.contrast);
+    }
+    host.append(textNode('p', '設問別の記録に基づくAIの仮説です。', 'fine'));
+  } else {
+    host.append(textNode('p', REVIEW_STATUS[status] ?? '', 'fine'));
+    if (status === 'failed') retry('AI分析を再試行');
   }
-  host.append(textNode('p', REVIEW_STATUS[status] ?? '', 'fine'),
-    textNode('p', '誤答回数が多い問題から、解き方や選んだ理由を声に出して確認します。' +
-      '解説を確認したあと、似た問題を1問解き直しましょう。'));
-  if (status === 'failed') retry('AI分析を再試行');
+
+  for (const [group, label] of [
+    ['often_wrong', '苦手傾向'], ['often_right', '得意傾向'],
+    ['mixed', '正誤が分かれる'], ['few', '出題1回・傾向は保留'],
+  ]) {
+    const items = questions.filter(row => row.group === group);
+    host.append(textNode('h4', label + '（' + items.length + '問）'));
+    if (!items.length) continue;
+    const list = document.createElement('ul');
+    for (const row of items) {
+      const item = document.createElement('li');
+      const total = row.correct + row.wrong;
+      item.append(textNode('strong', '設問' + row.number + '　' + (row.prompt || '問題文を取得できませんでした')),
+        textNode('p', '正答' + row.correct + '回・誤答' + row.wrong + '回／' + total +
+          '回出題（正答率 ' + (row.correct * 100 / total).toFixed(0) + '％）', 'fine'));
+      list.append(item);
+    }
+    host.append(list);
+  }
 }
 
 function renderPriority(host, units, kind) {
