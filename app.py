@@ -92,7 +92,7 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 .medal-compose{border-top:1px solid var(--line);margin:18px 0;padding-top:5px}.requirement-row{display:grid;grid-template-columns:minmax(160px,1fr) 140px 65px 20px 50px;gap:8px;align-items:center;margin:9px 0}.requirement-row select,.requirement-row input{margin:0;min-width:0;font-size:12px;padding:10px 8px}.requirement-row .text{padding:8px 2px}.medal-progress{margin:15px 0;padding:14px;background:#f8faf4;border-radius:13px;border:1px solid #e1eadb}.medal-progress strong{font-size:12px;display:block}.medal-progress>small{display:block;margin-top:4px}.medal-condition{display:grid;grid-template-columns:19px minmax(0,1fr);gap:3px 5px;margin-top:12px;border-top:1px solid #e4ebdf;padding-top:10px}.condition-check{grid-row:span 4;color:#9ca68e}.complete .condition-check{color:#247968;font-weight:800}.condition-label{font-size:12px}.condition-need{grid-column:2;font-size:12px}.condition-earned{grid-column:2;display:flex;gap:5px;flex-wrap:wrap}.earned-medal{padding:2px 7px;border-radius:12px;background:#fff;font-size:12px}.medal-condition>small{grid-column:2}.message h3{font-size:14px;margin-bottom:7px}.message .medal-progress{min-width:min(380px,100%)}@media(max-width:700px){.requirement-row{grid-template-columns:minmax(0,1fr) 65px 20px 45px;padding:12px;background:#f8faf5;border-radius:12px;gap:7px}.requirement-target{grid-column:1/-1}.requirement-grade{grid-column:1}.requirement-count{grid-column:2}.requirement-row select{font-size:12px}.message .medal-progress{min-width:0}.message{width:95%}}
 
 .difficult-item{display:flex;align-items:flex-start;gap:16px;padding:16px 0;border-bottom:1px solid var(--line,#e9e4da)}.difficult-item:last-child{border-bottom:0}.difficult-body{flex:1;min-width:0}.difficult-body h3{margin:6px 0}.difficult-body p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}.difficult-body pre{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.difficult-body summary{cursor:pointer;padding:8px 0;font-size:14px}.difficult-item>button{flex:none;min-height:44px}#difficultCount{font-size:14px;color:#786d5c}.difficult-pagination{justify-content:space-between;margin-top:12px}@media(max-width:600px){.difficult-item{flex-direction:column;gap:8px}.difficult-item>button{width:100%}#difficultTitle{font-size:20px}}
-.event{grid-template-columns:70px 36px minmax(0,1fr) minmax(130px,auto)}.event-reward{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.earned-medal{font-size:24px;white-space:nowrap}.earned-medal small{font-size:12px;display:block}.stamp-target-btn{min-height:38px;padding:6px 10px;background:#fff5df;border:1px solid #d7bc82;border-radius:10px;color:#735719;font-size:13px;white-space:nowrap}.support-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.support-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;background:white;border:2px solid var(--support-color,#43814d);border-radius:10px;font-size:12px;line-height:1.3}.support-badge b{font-size:21px}.support-badge small{font-size:10px;color:var(--support-color,#43814d)}.plan-support-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #ebe7df}.plan-support-row:last-child{border-bottom:0}.plan-support-row small,.stats-table-wrap small{display:block;font-size:11px;color:#736c61}.stats-table-wrap{overflow:auto;max-width:100%}.stats-table-wrap table{width:100%;border-collapse:collapse;font-size:13px}.stats-table-wrap th,.stats-table-wrap td{padding:10px 8px;border-bottom:1px solid #e8e3da;vertical-align:top;text-align:left}.stats-table-wrap td:first-child{min-width:180px;max-width:300px;overflow-wrap:anywhere}.stats-table-wrap details p{font-size:11px;white-space:nowrap;margin:5px 0}.stats-table-wrap summary{font-size:12px;padding-top:7px;cursor:pointer}.low-rate{color:#b04d36;font-weight:700}.learning-bars{display:grid;gap:10px;margin-top:20px}.learning-bar-row{display:grid;grid-template-columns:minmax(140px,1fr) 2fr 50px;gap:10px;align-items:center;font-size:12px}.bar-track{height:20px;background:#eef0e9;border-radius:5px;overflow:hidden}.bar-fill{height:100%;background:#438979;border-radius:5px}.bar-label{overflow-wrap:anywhere}.learning-bar-row b{white-space:nowrap}#stampDialog{width:min(620px,calc(100% - 24px));max-height:90dvh;overflow:auto;border:1px solid #d4d9ce;border-radius:20px;padding:20px;color:inherit;background:#fffdf8}#stampDialog::backdrop{background:#162f2b80}#stampChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0}.stamp-choice{min-height:60px;font-size:13px;border:2px solid #e5e0d5;background:white;border-radius:12px;padding:7px}.stamp-choice.selected{border-color:#258068;background:#eef7ef}.actor-preview{display:inline-block;border:2px solid;padding:3px 9px;border-radius:10px;font-size:13px;margin:8px}.difficult-item{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:8px 0;gap:8px;align-items:center}.difficult-body h3{font-size:13px;margin:2px 0}.difficult-body>p{margin:3px 0;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.difficult-body small{font-size:10px}.difficult-body summary{font-size:11px;padding:3px 0}.difficult-item>button{min-height:34px;width:auto;padding:5px 8px;font-size:12px}.difficult-body details[open] p{display:block;font-size:12px;white-space:pre-wrap}.difficult-pagination{margin-top:4px}#difficultSection .card{padding:10px 16px}nav#nav{overflow:auto}nav#nav button{flex:none}@media(max-width:600px){.event{grid-template-columns:44px 24px minmax(0,1fr);gap:8px}.event-reward{grid-column:3;justify-content:flex-start}.event-icon{width:24px;font-size:14px}.learning-bar-row{grid-template-columns:110px minmax(60px,1fr) 42px;font-size:11px;gap:6px}#stampChoices{grid-template-columns:repeat(2,minmax(0,1fr))}.difficult-item{grid-template-columns:minmax(0,1fr) auto}.difficult-item>button{width:auto}.plan-support-row{gap:7px}.plan-support-row strong{font-size:13px}}
+.event{grid-template-columns:70px 36px minmax(0,1fr) minmax(130px,auto)}.event-reward{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.stamp-target-btn{min-height:38px;padding:6px 10px;background:#fff5df;border:1px solid #d7bc82;border-radius:10px;color:#735719;font-size:13px;white-space:nowrap}.support-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.support-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;background:white;border:2px solid var(--support-color,#43814d);border-radius:10px;font-size:12px;line-height:1.3}.support-badge b{font-size:21px}.support-badge small{font-size:10px;color:var(--support-color,#43814d)}.plan-support-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #ebe7df}.plan-support-row:last-child{border-bottom:0}.plan-support-row small{display:block;font-size:11px;color:#736c61}.low-rate{color:#b04d36;font-weight:700}.learning-bars{display:grid;gap:10px;margin-top:20px}.learning-bar-row{display:grid;grid-template-columns:minmax(140px,1fr) 2fr 50px;gap:10px;align-items:center;font-size:12px}.bar-track{height:20px;background:#eef0e9;border-radius:5px;overflow:hidden}.bar-fill{height:100%;background:#438979;border-radius:5px}.bar-label{overflow-wrap:anywhere}.learning-bar-row b{white-space:nowrap}#stampDialog{width:min(620px,calc(100% - 24px));max-height:90dvh;overflow:auto;border:1px solid #d4d9ce;border-radius:20px;padding:20px;color:inherit;background:#fffdf8}#stampDialog::backdrop{background:#162f2b80}#stampChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0}.stamp-choice{min-height:60px;font-size:13px;border:2px solid #e5e0d5;background:white;border-radius:12px;padding:7px}.stamp-choice.selected{border-color:#258068;background:#eef7ef}.actor-preview{display:inline-block;border:2px solid;padding:3px 9px;border-radius:10px;font-size:13px;margin:8px}.difficult-item{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:8px 0;gap:8px;align-items:center}.difficult-body h3{font-size:13px;margin:2px 0}.difficult-body>p{margin:3px 0;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.difficult-body small{font-size:10px}.difficult-body summary{font-size:11px;padding:3px 0}.difficult-item>button{min-height:34px;width:auto;padding:5px 8px;font-size:12px}.difficult-body details[open] p{display:block;font-size:12px;white-space:pre-wrap}.difficult-pagination{margin-top:4px}#difficultSection .card{padding:10px 16px}@media(max-width:600px){.event{grid-template-columns:44px 24px minmax(0,1fr);gap:8px}.event-reward{grid-column:3;justify-content:flex-start}.event-icon{width:24px;font-size:14px}.learning-bar-row{grid-template-columns:110px minmax(60px,1fr) 42px;font-size:11px;gap:6px}#stampChoices{grid-template-columns:repeat(2,minmax(0,1fr))}.difficult-item{grid-template-columns:minmax(0,1fr) auto}.difficult-item>button{width:auto}.plan-support-row{gap:7px}.plan-support-row strong{font-size:13px}}
 
 /* Shared vector artwork: the same stamp is displayed on the learner hub. */
 .cm-stamp-art{display:block;width:104px;max-width:100%;height:auto}.support-badge{padding:0!important;border:0!important;background:none!important;display:inline-block!important}.stamp,.stamp-choice{padding:5px!important;display:flex;align-items:center;justify-content:center;min-width:0}#stampChoices{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}.support-badges{gap:6px}.support-badges .cm-stamp-art{width:82px}
@@ -105,10 +105,10 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 #supporterManagement{margin-top:18px}#supporterManagement h3{margin-top:0}#supporterManagement>label{max-width:340px}.person-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 66px;gap:8px;align-items:center;margin:10px 0}.person-row input,.person-row select{min-width:0;width:100%;margin:0}.person-row button{padding:9px 10px}#supporterAddForm{padding-top:10px;border-top:1px solid var(--line,#e3e9e6)}#difficultSection.has-difficulties>.card{border-color:#dfa762;background:#fff9ee;box-shadow:0 0 0 1px #dfa76240}#difficultSection.has-difficulties #difficultTitle{color:#8c571b}#difficultSection.has-difficulties #difficultCount{display:inline-block;background:#f7dfbd;color:#75440c;border-radius:14px;padding:3px 10px;font-size:16px;font-weight:800}@media(max-width:480px){.person-row{grid-template-columns:minmax(0,1fr) 84px 58px;gap:6px}.person-row button{padding:8px 5px}}
 
 /* Compact, readable rows at phone width. */
-.plan-support-row{padding:12px 0!important;gap:8px!important}.plan-support-row strong{font-size:16px!important;line-height:1.4}.plan-support-row small{font-size:12px!important;margin:3px 0!important}.plan-support-row.is-completed{background:#e8f4ec;border-left:4px solid #509475;border-radius:8px;padding:10px!important;margin:4px 0}.stamp-target-btn{font-size:13px!important;min-height:38px!important;padding:7px 10px!important;white-space:nowrap}.event{display:grid!important;grid-template-columns:44px minmax(0,1fr);gap:6px 10px!important;padding:12px 0!important}.event h3{font-size:15px!important;line-height:1.4!important;margin:0!important}.event time{font-size:11px!important}.event-reward{grid-column:2;display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;margin:0!important}.earned-medal{font-size:28px!important}.earned-medal small{font-size:11px!important}.event-reward .support-badge{width:40px!important;height:40px!important}.event-reward .support-badge svg{width:29px!important;height:29px!important}.recommendation{color:#835a14!important;font-weight:700}.graduation-recommended{background:#fff5d8}
+.plan-support-row{padding:12px 0!important;gap:8px!important}.plan-support-row strong{font-size:16px!important;line-height:1.4}.plan-support-row small{font-size:12px!important;margin:3px 0!important}.plan-support-row.is-completed{background:#e8f4ec;border-left:4px solid #509475;border-radius:8px;padding:10px!important;margin:4px 0}.stamp-target-btn{font-size:13px!important;min-height:38px!important;padding:7px 10px!important;white-space:nowrap}.event{display:grid!important;grid-template-columns:44px minmax(0,1fr);gap:6px 10px!important;padding:12px 0!important}.event h3{font-size:15px!important;line-height:1.4!important;margin:0!important}.event time{font-size:11px!important}.event-reward{grid-column:2;display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;margin:0!important}.event-reward .support-badge{width:40px!important;height:40px!important}.event-reward .support-badge svg{width:29px!important;height:29px!important}.recommendation{color:#835a14!important;font-weight:700}.graduation-recommended{background:#fff5d8}
 @media(max-width:600px){.target{gap:10px!important;padding:12px 0!important}.target button{font-size:13px!important;min-width:90px;padding:8px!important}.person-row{grid-template-columns:minmax(0,1fr) 72px 56px!important;gap:6px!important}.person-row input,.person-row select{min-width:0;padding:8px!important}}
 
-@media(max-width:600px){html,body{overflow-x:clip}.filters{gap:10px!important}.filters label{margin:4px 0!important;min-width:0!important}.filters .grow{min-width:0!important}.card{padding:16px!important}#nav{box-sizing:border-box;max-width:100%;left:0;right:0}#nav button{min-width:0!important;padding:8px 2px!important}.supporter-management label{margin:4px 0}.stats-table{overflow:visible}}
+@media(max-width:600px){html,body{overflow-x:clip}.filters{gap:10px!important}.filters label{margin:4px 0!important;min-width:0!important}.filters .grow{min-width:0!important}.card{padding:16px!important}#nav{box-sizing:border-box;max-width:100%;left:0;right:0}#nav button{min-width:0!important;padding:8px 2px!important}.supporter-management label{margin:4px 0}}
 </style><title>ちょこまな みまもり</title><style>
 .balance-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.75rem}
 .balance-group{padding:.7rem;border:1px solid #dce9e0;border-radius:12px}
@@ -128,42 +128,54 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 #statsPage .analysis-filters label, #statsPage .analysis-filters select { margin: 0; min-width: 0; }
 #statsRefresh { white-space: nowrap; }
 #statsStatus:empty { display: none; }
-#statsTable {
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
+#statsTable { margin: 0 0 12px; padding: 0; list-style: none; }
 #statsTable:empty { display: none; }
-#statsTable table { display: table; width: 100%; min-width: 880px; border-collapse: separate; border-spacing: 0; }
-#statsTable thead { display: table-header-group; }
-#statsTable tbody { display: table-row-group; }
-#statsTable tr { display: table-row; }
-#statsTable th, #statsTable td {
-  display: table-cell;
-  padding: 8px 6px;
-  vertical-align: middle;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-#statsTable td::before { content: none; }
-#statsTable thead th { background: #e9f3ee; }
-#statsTable tr > :first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  width: 170px;
-  min-width: 145px;
-  max-width: 190px;
-  text-align: left;
-  white-space: normal;
+.unit-record {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
   overflow-wrap: anywhere;
-  border-right: 1px solid var(--line);
 }
-#statsTable tbody th { background: #fff; font-weight: 600; }
-#statsTable tbody tr:nth-child(even) > * { background: #f8fbf9; }
-#statsTable button { min-height: 36px; padding: 5px 9px; font-size: 12px; white-space: nowrap; }
-#statsTable :focus-visible, #statsTable:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+.unit-record:first-child { border-radius: 10px 10px 0 0; }
+.unit-record:last-child { border-bottom: 1px solid var(--line); border-radius: 0 0 10px 10px; }
+.unit-record:only-child { border-radius: 10px; }
+.unit-record:nth-child(even) { background: #f8fbf9; }
+.unit-record-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.unit-record-title { flex: 1 1 14rem; min-width: 0; margin: 0; font-size: 14px; }
+.unit-record-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.unit-record-actions button { min-height: 40px; padding: 4px 10px; font-size: 12px; }
+.unit-record-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
+  gap: 6px 10px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.unit-record-metrics dt { color: #526a62; font-size: 11px; }
+.unit-record-metrics dd { margin: 0; font-variant-numeric: tabular-nums; }
+.timeline-medal {
+  --medal-bg: #f4f5f5;
+  --medal-border: #cad2cf;
+  --medal-ink: #3c514a;
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 4px 9px;
+  border: 1px solid var(--medal-border);
+  border-radius: 10px;
+  background: var(--medal-bg);
+  color: var(--medal-ink);
+  line-height: 1.35;
+}
+.timeline-medal[data-grade="gold"] { --medal-bg: #fff4ce; --medal-border: #d9ae4c; --medal-ink: #674700; }
+.timeline-medal[data-grade="silver"] { --medal-bg: #edf2f8; --medal-border: #a5b5c8; --medal-ink: #354c66; }
+.timeline-medal[data-grade="bronze"] { --medal-bg: #fbeadf; --medal-border: #d5a185; --medal-ink: #773d22; }
+.timeline-medal-icon { font-size: 20px; }
+.timeline-medal strong, .timeline-medal small { display: block; overflow-wrap: anywhere; }
+.timeline-medal strong { font-size: 13px; }
+.timeline-medal small { font-size: 11px; }
 #analysisBalance > summary { cursor: pointer; font-weight: 700; }
 #analysisBalance .section-head { margin-top: 10px; }
 #analysisBalance h3 { margin: 0; }
@@ -192,7 +204,8 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 }
 @media (max-width: 520px) {
   .analysis-priority-row { grid-template-columns: minmax(0, 1fr); }
-  #statsTable tr > :first-child { min-width: 106px; width: 106px; max-width: 128px; }
+  .unit-record-title { flex-basis: 100%; }
+  .unit-record-actions button { min-height: 44px; }
 }
 .layout {
   height: 100dvh;
@@ -212,6 +225,8 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 @media (max-width: 700px) {
   .layout { display: flex; flex-direction: column; }
   .layout > aside { flex: 0 0 auto; }
+  #nav button { flex: 1; min-width: 0; padding-inline: 2px; text-align: center; }
+  #nav button span { overflow-wrap: anywhere; }
   #managerScroll { flex: 1 1 0; padding-bottom: 96px; }
 }
 </style></head>
@@ -262,7 +277,8 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
     </div>
     <p id="statsStatus" class="fine" role="status"></p>
     <p id="statsCounts" class="fine" role="status"></p>
-    <div id="statsTable" class="stats-table-wrap" tabindex="0" role="region" aria-label="学習単元一覧"></div>
+    <p id="statsEmpty" class="empty" hidden></p>
+    <ul id="statsTable" aria-label="学習単元一覧"></ul>
     <details>
       <summary>集計方法</summary>
       <p class="fine">5回平均・15回平均は、同じ単元で完了した学習の正答率を1回ずつ同じ重みで平均します。回数が足りないときは、集計した回数を表示します。</p>
@@ -419,8 +435,6 @@ graduationSubject.replaceChildren(...['soroban', ...Object.keys(ANALYSIS_NAMES).
   return option;
 }));
 graduationSubject.value = 'soroban';
-const ANALYSIS_COLUMNS = ['単元', '5回平均', '15回平均', '推移', '正答率', '正解数',
-  '採点数', '学習回数', '最終学習日', '重点単元', '修了認定'];
 const REVIEW_STATUS = {
   unconfigured: 'AI分析を利用するには OPENAI_API_KEY の設定が必要です。',
   unknown_prompts: '今回の記録に対応する問題文を取得できなかったため、内容の傾向を分析できません。',
@@ -434,7 +448,7 @@ let analysis = newAnalysisState();
 
 function newAnalysisState() {
   return { units: null, loadedAt: 0, request: null, detail: null, openKey: null, saving: false,
-    returnFromPin: false, pinScroll: 0, tableRows: new WeakMap() };
+    returnFromPin: false, pinScroll: 0, unitRows: new WeakMap() };
 }
 function resetAnalysis() {
   analysis = newAnalysisState();
@@ -442,6 +456,7 @@ function resetAnalysis() {
   for (const id of ['statsCounts', 'statsStatus']) $('#' + id).textContent = '';
   for (const id of ['statsSubject', 'statsSort', 'statsGraduation']) $('#' + id).selectedIndex = 0;
   $('#analysisResults').hidden = true;
+  $('#statsEmpty').hidden = true;
   $('#statsRefresh').disabled = false;
 }
 
@@ -480,7 +495,7 @@ async function loadStatistics(force = false) {
     const result = await request;
     if (analysis !== current || current.request !== request) return;
     current.units = result.units;
-    current.tableRows = new WeakMap();
+    current.unitRows = new WeakMap();
     current.loadedAt = Date.now();
     status.textContent = '';
     renderStatistics();
@@ -743,44 +758,50 @@ function renderAnalysisTable() {
   $('#statsCounts').textContent = units.length + '単元 · 重点 ' + units.filter(unit => unit.focused).length +
     '単元 · 修了認定済み ' + units.filter(unit => unit.graduated).length + '単元';
   const host = $('#statsTable');
-  const left = host.scrollLeft;
-  host.replaceChildren();
+  const empty = $('#statsEmpty');
+  empty.hidden = sorted.length > 0;
   if (!sorted.length) {
-    host.append(textNode('p', units.length ? '条件に合う単元はありません。' :
-      'このアプリの単元や学習記録が連携されると、ここに表示されます。', 'empty'));
+    host.replaceChildren();
+    empty.textContent = units.length ? '条件に合う単元はありません。' :
+      'このアプリの単元や学習記録が連携されると、ここに表示されます。';
     return;
   }
-  const table = document.createElement('table');
-  const head = table.createTHead().insertRow();
-  for (const name of ANALYSIS_COLUMNS) {
-    const cell = textNode('th', name);
-    cell.scope = 'col';
-    head.append(cell);
-  }
-  const body = table.createTBody();
+
+  const rows = document.createDocumentFragment();
   for (const unit of sorted) {
-    let row = analysis.tableRows.get(unit);
-    if (!row) {
-      row = document.createElement('tr');
+    let record = analysis.unitRows.get(unit);
+    if (!record) {
+      const row = textNode('li', '', 'unit-record');
+      const header = textNode('div', '', 'unit-record-header');
+      const title = textNode('h3', '', 'unit-record-title');
+      const actions = textNode('div', '', 'unit-record-actions');
+      actions.append(analysisButton(unit, 'unit'), analysisButton(unit, 'focus'));
+      header.append(title, actions);
+
       const [short, long, count, trend] = unit.moving;
-      const title = textNode('th', unit.label);
-      title.scope = 'row';
-      row.append(title);
+      const metrics = textNode('dl', '', 'unit-record-metrics');
       const values = [
-        averageLabel(short, count, 5), averageLabel(long, count, 15), trend,
-        unit.rate == null ? '—' : analysisPercent(unit.rate, 0), unit.total ? unit.correct : '—',
-        unit.total, unit.attempts, unit.last ? ANALYSIS_DATE.format(new Date(unit.last)) : '—',
+        ['正答率', unit.rate == null ? '—' : analysisPercent(unit.rate, 0)],
+        ['5回平均', averageLabel(short, count, 5)],
+        ['15回平均', averageLabel(long, count, 15)],
+        ['推移', trend],
+        ['正解数／採点数', (unit.total ? unit.correct : '—') + ' / ' + unit.total],
+        ['学習回数', unit.attempts],
+        ['最終学習日', unit.last ? ANALYSIS_DATE.format(new Date(unit.last)) : '—'],
       ];
-      for (const value of values) row.insertCell().textContent = value;
-      for (const kind of ['focus', 'unit']) row.insertCell().append(analysisButton(unit, kind));
-      analysis.tableRows.set(unit, row);
+      for (const [name, value] of values) {
+        const metric = document.createElement('div');
+        metric.append(textNode('dt', name), textNode('dd', value));
+        metrics.append(metric);
+      }
+      row.append(header, metrics);
+      record = { row, title };
+      analysis.unitRows.set(unit, record);
     }
-    const label = unit.label + (source ? '' : '（' + ANALYSIS_NAMES[unit.source_app] + '）');
-    if (row.firstElementChild.textContent !== label) row.firstElementChild.textContent = label;
-    body.append(row);
+    record.title.textContent = unit.label + (source ? '' : '（' + ANALYSIS_NAMES[unit.source_app] + '）');
+    rows.append(record.row);
   }
-  host.append(table);
-  host.scrollLeft = left;
+  host.replaceChildren(rows);
   syncAnalysisButtons();
 }
 
@@ -1051,17 +1072,59 @@ function renderHome(){const today=day(new Date()),events=state.events.filter(e=>
  $('#completed').replaceChildren(document.createTextNode(events.filter(e=>e.kind==='unit_completed').length),textNode('small','回'));$('#started').replaceChildren(document.createTextNode(state.started_today??events.filter(e=>e.kind==='unit_started').length),textNode('small','回'));$('#voices').replaceChildren(document.createTextNode(messages.filter(e=>e.sender==='child'&&day(e.created_at)===today).length),textNode('small','件'));
  const latestDone=state.events.find(e=>e.kind==='unit_completed'&&day(e.created_at)===today);$('#lastActivity').textContent=latestDone?'最近の完了：'+time(latestDone.created_at)+' '+latestDone.title:'学習をやり遂げると、きょうのあしあとに表示します。';$('#syncTime').textContent=time(state.server_time)+' 更新';
  const host=$('#timeline');host.replaceChildren();const finishedToday=state.events.filter(e=>e.kind==='unit_completed'&&day(e.created_at)===today);if(!finishedToday.length)host.append(textNode('div','きょう完了した学習は、まだありません。','empty'));
- for(const e of finishedToday){const row=textNode('article','','event'),t=textNode('time',day(e.created_at)===today?time(e.created_at):stampDate(e.created_at));const icon=textNode('div',({app_opened:'❧',unit_started:'▶',unit_completed:'✦',voice_message:'♬',test:'♧'})[e.kind]||'•','event-icon'),body=document.createElement('div');const label=state.medals?.find(m=>m.attempt_id===e.entity_id&&m.source_app===e.source_app)?.category_label;body.append(textNode('h3',(SUBJECTS[e.source_app]||'学習')+'・'+plain(e.body||label||'学習').replace(/\s+\d+\/\d+$/,'')+'を完了'));row.append(t,body);if(e.kind==='unit_completed'&&e.entity_id){const reward=textNode('div','','event-reward'),m=state.medals?.find(m=>m.attempt_id===e.entity_id&&m.source_app===e.source_app);if(m){const medal=textNode('span',({gold:'🥇',silver:'🥈',bronze:'🥉',white:'⚪'})[m.grade]||'⚪','earned-medal');medal.setAttribute('aria-label',({gold:'金',silver:'銀',bronze:'銅',white:'取り組み'})[m.grade]+'メダル');medal.append(textNode('small',(m.stamp_char||'')+' '+m.correct_count+'/'+m.total_count));reward.append(medal)}else{const result=state.results?.find(r=>r.source_app===e.source_app&&r.attempt_id===e.entity_id)?.payload?.original_result;reward.append(textNode('small',e.source_app==='soroban'&&/検定/.test(e.body||'')&&result?.grade==='white'?'不合格（メダルなし）':'学習完了・メダルの保存待ち','fine'));}reward.append(stampButton('attempt',e.entity_id,e.source_app,e.body),stampBadges('attempt',e.entity_id,e.source_app));row.append(reward)}host.append(row)}
+ for (const event of finishedToday) {
+   const row = textNode('article', '', 'event');
+   const medal = state.medals?.find(item => item.attempt_id === event.entity_id && item.source_app === event.source_app);
+   const title = plain(event.body || medal?.category_label || '学習').replace(/\s+\d+\/\d+$/, '');
+   const body = document.createElement('div');
+   body.append(textNode('h3', (SUBJECTS[event.source_app] || '学習') + '・' + title + 'を完了'));
+   row.append(textNode('time', time(event.created_at)), body);
+
+   if (event.entity_id) {
+     const reward = textNode('div', '', 'event-reward');
+     if (medal) {
+       reward.append(timelineMedal(medal));
+     } else {
+       const result = state.results?.find(item => item.source_app === event.source_app &&
+         item.attempt_id === event.entity_id)?.payload?.original_result;
+       const failed = event.source_app === 'soroban' && /検定/.test(event.body || '') && result?.grade === 'white';
+       reward.append(textNode('small', failed ? '不合格（メダルなし）' : '学習完了・メダルの保存待ち', 'fine'));
+     }
+     reward.append(stampButton('attempt', event.entity_id, event.source_app, event.body),
+       stampBadges('attempt', event.entity_id, event.source_app));
+     row.append(reward);
+   }
+   host.append(row);
+ }
  const unread=messages.filter(m=>m.sender==='child'&&!m.read_at).length;$('#unread').hidden=!unread;
 }
 const MEDAL_SYMBOL={gold:'🥇',silver:'🥈',bronze:'🥉'},MEDAL_NAME={gold:'金',silver:'銀',bronze:'銅'};
+function timelineMedal(medal) {
+  const name = MEDAL_NAME[medal.grade];
+  const label = name ? name + 'メダル' : medal.grade === 'white' ? '取り組みメダル（白）' : 'メダル';
+  const badge = textNode('span', '', 'timeline-medal');
+  badge.dataset.grade = medal.grade || '';
+  const icon = textNode('span', MEDAL_SYMBOL[medal.grade] || '○', 'timeline-medal-icon');
+  icon.setAttribute('aria-hidden', 'true');
+  const body = document.createElement('span');
+  body.append(textNode('strong', label));
+  if (medal.special_medal_key) {
+    body.append(textNode('small', medal.special_medal_label || '特別メダル'));
+  }
+  if (medal.stamp_char) body.append(textNode('small', 'しるし「' + medal.stamp_char + '」'));
+  if (medal.correct_count != null && medal.total_count != null) {
+    body.append(textNode('small', '正解 ' + medal.correct_count + ' / ' + medal.total_count + '問'));
+  }
+  badge.append(icon, body);
+  return badge;
+}
 let medalOptions=[],medalOptionsLoading=null;
 async function loadMedalOptions(){if(medalOptions.length)return;if(medalOptionsLoading)return medalOptionsLoading;medalOptionsLoading=api('medal_targets').then(r=>{medalOptions=r.targets;for(const select of document.querySelectorAll('.requirement-target'))populateMedalOptions(select)}).finally(()=>medalOptionsLoading=null);return medalOptionsLoading}
 function populateMedalOptions(select){const prior=select.value;select.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='単元を選んでください';select.append(placeholder);const names={kotoba:'国語',soroban:'そろばん',geometry:'図形',english:'英語',moji:'ひらがな・カタカナ'};for(const source of Object.keys(names)){const items=medalOptions.filter(t=>t.source_app===source);if(!items.length)continue;const group=document.createElement('optgroup');group.label=names[source];for(const t of items){const option=document.createElement('option');option.value=t.id;option.textContent=t.label;group.append(option)}select.append(group)}select.value=prior;}
 function addRequirement(){const host=$('#requirementRows');if(host.children.length>=12){toast('条件は12個まで指定できます。');return}const row=textNode('div','','requirement-row'),target=document.createElement('select');target.className='requirement-target';target.setAttribute('aria-label','必要なメダルの単元');populateMedalOptions(target);const grade=document.createElement('select');grade.className='requirement-grade';grade.setAttribute('aria-label','メダルの色と条件');for(const [value,label]of [['bronze:at_least','🥉 銅以上'],['silver:at_least','🥈 銀以上'],['gold:at_least','🥇 金'],['bronze:exact','🥉 銅ちょうど'],['silver:exact','🥈 銀ちょうど']]){const o=document.createElement('option');o.value=value;o.textContent=label;grade.append(o)}const count=document.createElement('input');count.type='number';count.min=1;count.max=20;count.value=1;count.className='requirement-count';count.setAttribute('aria-label','必要なメダルの個数');const unit=textNode('span','個','fine'),remove=textNode('button','削除','text');remove.type='button';remove.onclick=()=>{row.remove();if(!host.children.length)addRequirement()};row.append(target,grade,count,unit,remove);host.append(row)}
 function collectRequirements(){const rows=[...document.querySelectorAll('.requirement-row')];const seen=new Set();return rows.map(row=>{const target=row.querySelector('.requirement-target').value,[grade,comparison]=row.querySelector('.requirement-grade').value.split(':'),count=Number(row.querySelector('.requirement-count').value);if(!target)throw new Error('必要なメダルの単元を選んでください。');if(seen.has(target))throw new Error('同じ単元の条件は1行にまとめてください。');if(!Number.isInteger(count)||count<1||count>20)throw new Error('個数は1〜20個にしてください。');seen.add(target);return {target_id:target,grade,comparison,count}})}
 function parentMedalProgress(m){if(!m.unlock_requirements?.length)return null;const section=textNode('div','','medal-progress'),u=m.unlock||{unlocked:false,conditions:m.unlock_requirements};const headline=u.unlocked?'🔓 メダル達成・再生できます':!u.delivered_at?'📮 お届け待ち：受信後に集計開始':'🔒 メダルを集めています';section.append(textNode('strong',headline));if(u.delivered_at)section.append(textNode('small',stampDate(u.delivered_at)+' から集計'));
- for(const r of u.conditions){const line=textNode('div','','medal-condition'+(r.complete?' complete':''));line.append(textNode('span',r.complete?'✓':'○','condition-check'),textNode('span',r.label,'condition-label'));const need=textNode('span',MEDAL_SYMBOL[r.grade]+' '+MEDAL_NAME[r.grade]+(r.comparison==='at_least'&&r.grade!=='gold'?'以上':'')+' × '+r.count,'condition-need');line.append(need);const earned=textNode('div','','condition-earned');for(const medal of r.earned||[])earned.append(textNode('span',MEDAL_SYMBOL[medal.grade]+' '+medal.count+'個','earned-medal'));if(!r.earned?.length)earned.append(textNode('span','まだ未獲得','fine'));line.append(earned,textNode('small',(r.qualified_count||0)+' / '+r.count+'個'+(r.complete?' 達成':' ・あと'+(r.remaining??r.count)+'個')));section.append(line)}return section}
+ for(const r of u.conditions){const line=textNode('div','','medal-condition'+(r.complete?' complete':''));line.append(textNode('span',r.complete?'✓':'○','condition-check'),textNode('span',r.label,'condition-label'));const need=textNode('span',MEDAL_SYMBOL[r.grade]+' '+MEDAL_NAME[r.grade]+(r.comparison==='at_least'&&r.grade!=='gold'?'以上':'')+' × '+r.count,'condition-need');line.append(need);const earned=textNode('div','','condition-earned');for(const medal of r.earned||[])earned.append(textNode('span',MEDAL_SYMBOL[medal.grade]+' '+MEDAL_NAME[medal.grade]+'メダル '+medal.count+'個','earned-medal'));if(!r.earned?.length)earned.append(textNode('span','まだ未獲得','fine'));line.append(earned,textNode('small',(r.qualified_count||0)+' / '+r.count+'個'+(r.complete?' 達成':' ・あと'+(r.remaining??r.count)+'個')));section.append(line)}return section}
 $('#addRequirement').onclick=()=>{addRequirement();if(token)loadMedalOptions().catch(error)};addRequirement();
 
 function renderMessages(){if(!state)return;const sig=JSON.stringify(state.messages);if(sig===messageSignature)return;if([...document.querySelectorAll('#messages audio')].some(a=>!a.paused))return;messageSignature=sig;const host=$('#messages');host.replaceChildren();if(!state.messages.length)host.append(textNode('div','まだおたよりはありません。スタンプや声で応援してみましょう。','empty'));
