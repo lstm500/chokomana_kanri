@@ -236,7 +236,7 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 <section id="loginPage" class="login-layout"><div class="welcome"><div class="welcome-art"><span class="orbit one">✦</span><span class="orbit two">♡</span><div class="bigmark">ち<span>❧</span></div><span class="art-badge">ひとつずつ、できた！</span></div><h2>がんばる毎日に、<br>あなたの声を。</h2><p>学習をやりとげた記録を。<br>ちょこまなの学習を、ここから見守れます。</p><div class="feature-pills"><span>学習のお知らせ</span><span>声のおたより</span><span>応援スタンプ</span></div></div><div class="card login-card"><span class="eyebrow">WELCOME</span><h2>ちょこまなと連携</h2><p class="muted">お子さまが使っているIDとパスワードを入力してください。</p><form id="loginForm"><label>ID<input name="username" autocomplete="username" required maxlength="32" autocapitalize="none" spellcheck="false" placeholder="ちょこまなのID"></label><label>パスワード<input name="password" autocomplete="current-password" type="password" required maxlength="128" placeholder="パスワードを入力"></label><button class="primary full" type="submit">連携してはじめる <span>→</span></button></form><p class="fine">新規のID作成は、ちょこまな本体で行ってください。</p></div></section>
 <div id="app" hidden>
 <section id="homePage"><div class="hero card"><div><span class="eyebrow">TODAY’S LEARNING</span><h2><span id="learner"></span> の学びを<br>そっと見守りましょう。</h2><p id="lastActivity">学習記録を確認しています。</p></div><div class="hero-symbol" aria-hidden="true">❧<span>小さな一歩を、大きな喜びに。</span></div></div><section id="showRequestsSection" class="card" aria-labelledby="showRequestsTitle">
-<h3 id="showRequestsTitle">「これ、みて！」</h3><p id="showStatus" class="fine" role="status"></p>
+<h3 id="showRequestsTitle">アピール・これ、みて！</h3><p id="showStatus" class="fine" role="status"></p>
 <div id="showRequests"></div></section><section id="supporterManagement" class="card" aria-labelledby="supporterManagementTitle"><h3 id="supporterManagementTitle">管理する人</h3><label>この端末でスタンプを押す人<select id="activeSupporter"></select></label><div id="supporterList"></div><form id="supporterAddForm" class="person-row"><input id="supporterAddName" maxlength="24" required placeholder="新しい人の名前" aria-label="追加する人の名前"><select id="supporterAddColor" aria-label="追加する人の枠色"><option value="blue">青</option><option value="rose">ピンク</option><option value="green">緑</option><option value="purple">紫</option><option value="orange">オレンジ</option><option value="teal">青緑</option></select><button id="supporterAddSave" type="submit" class="secondary">追加</button></form></section><div class="notice card"><div class="notice-symbol">♧</div><div><h3 id="pushTitle">スマホにお知らせを届ける</h3><p id="pushStatus">通知を有効にすると、画面を閉じていても学習の開始・完了が届きます。</p><p id="installHelp" class="fine" hidden></p></div><button id="enablePush" class="primary">通知を有効に</button></div><div class="stats"><article class="card"><span>きょうの単元完了</span><b id="completed">—<small>回</small></b></article><article class="card"><span>きょうの学習開始</span><b id="started">—<small>回</small></b></article><article class="card"><span>届いた声のおたより</span><b id="voices">—<small>件</small></b></article></div><section aria-labelledby="todayPlanTitle"><div class="section-head"><h2 id="todayPlanTitle">きょうやることに応援</h2><button type="button" id="planRefresh" class="text">更新 ↻</button></div><p id="planSummary" class="muted"></p><div id="todayPlan" class="card"></div></section><section id="difficultSection" aria-labelledby="difficultTitle"><div class="section-head"><h2 id="difficultTitle">むずかしいボタンのリスト <small id="difficultCount">—</small></h2><button id="difficultRefresh" class="text" type="button">更新 ↻</button></div><div class="card"><p id="difficultStatus" class="fine" role="status">未解決の問題を確認しています。</p><div id="difficultList"></div><div class="inline difficult-pagination"><button id="difficultPrev" class="text" type="button" disabled>前の20件</button><span id="difficultPage" class="fine"></span><button id="difficultNext" class="text" type="button" disabled>次の20件</button></div></div></section><div class="section-head"><h2>学習のあしあと</h2><div><span id="syncTime" class="fine"></span><button id="refresh" class="text">更新 ↻</button></div></div><div id="timeline" class="card timeline"></div></section>
 <section id="statsPage" hidden aria-label="分析・管理">
   <div id="analysisResults" hidden>
@@ -985,7 +985,13 @@ function renderShowRequests(rows) {
       $('#record').scrollIntoView({ block: 'center' });
       $('#record').focus();
     };
-    line.append(body, stamp, voice);
+    const seen = textNode('button', '確認した', 'secondary');
+    seen.type = 'button';
+    seen.onclick = () => perform(seen, async () => {
+      await api('review_show', {show_id:request.id});
+      await loadShowRequests();
+    });
+    line.append(body, stamp, voice, seen);
     host.append(line);
   }
 }
