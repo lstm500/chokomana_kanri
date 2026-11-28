@@ -1,5 +1,5 @@
 """ちょこまな みまもり / Streamlit.
-Run with streamlit run app.py_mimamori.py. Backend: chokomana-watch.
+Run with streamlit run app.py. Backend: chokomana-watch.
 """
 from hashlib import sha256
 from pathlib import Path
@@ -13,7 +13,8 @@ st.set_page_config(page_title="ちょこまな みまもり", page_icon="🍀",
 st.markdown(
     '<style>[data-testid="stHeader"],#MainMenu,footer{display:none}'
     '.block-container{padding:0!important;max-width:none!important}'
-    'iframe{display:block;border:0}</style>', unsafe_allow_html=True,
+    'iframe[title*="chokomana_manager_"]{display:block;width:100%;border:0}</style>',
+    unsafe_allow_html=True,
 )
 
 FRONTEND = r'''<!doctype html>
@@ -22,7 +23,7 @@ FRONTEND = r'''<!doctype html>
 let w=window,d=document;
 if(cfg.parent){try{w=parent;d=w.document}catch{w=window;d=document}}
 if(w.__cmUxDiagnosticsV2){w.__cmUxDiagnosticsV2.mount();return}
-const LIMIT=1500,KEY='cm_ux_v2:'+cfg.source,BUILD='20261121.ux2';
+const LIMIT=1500,KEY='cm_ux_v2:'+cfg.source,BUILD='20261125.ux3';
 let rows=[],dropped=0,storage='available',timer=null,pending=null,quiet=null;
 const id=()=>w.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now();
 const clean=v=>String(v||'').replace(/https?:\/\/[^\s<>"']+/g,'[url]').replace(/(?:Bearer\s+\S+|sb_(?:secret|publishable)_\S+|eyJ[\w.-]+)/gi,'[token]').replace(/\b[a-f0-9]{24,}\b/gi,'[id]').replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[email]').slice(0,140);
@@ -44,7 +45,7 @@ function response(stage,explicit=false){
  },180);
 }
 function intent(e){const t=e.target?.closest?.('button,a,input[type=range],select');if(!t||t.disabled||t.closest('[data-cm-ux-control]'))return;
- if(t.matches('input[type=range]')&&e.type==='click')return;
+ if(t.matches('input[type=range],select')&&e.type==='click')return;
  if(pending)log('action_interrupted',pending.action,{action_id:pending.id,status:'superseded'});
  const action=t.id||t.getAttribute('aria-label')||t.textContent?.trim()||t.tagName;
  const p={id:id(),action:clean(action),start:w.performance.now(),first:false,changes:0,network:0,bridge:false};pending=p;
@@ -62,8 +63,8 @@ function attach(){if(d.body)obs.observe(d.body,{childList:true,subtree:true,char
 function safePath(url){try{return new URL(url,w.location.href).pathname.replace(/[a-f0-9-]{24,}/gi,'[id]').slice(0,100)}catch{return '[unknown]'}}
 const originalFetch=w.fetch;
 if(originalFetch)w.fetch=async function(input,options){const p=pending,began=w.performance.now(),path=safePath(typeof input==='string'?input:input?.url);if(p)p.network++;
- try{const result=await originalFetch.apply(this,arguments);log('network','fetch',{endpoint:path,method:options?.method||input?.method||'GET',http_status:result.status,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:result.ok?'ok':'error'});return result}
- catch(e){log('network','fetch',{endpoint:path,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:'error',error_type:e?.name});throw e}
+ try{const result=await originalFetch.apply(this,arguments);log('network',options?.cmAction||'fetch',{endpoint:path,method:options?.method||input?.method||'GET',http_status:result.status,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:result.ok?'ok':'error'});return result}
+ catch(e){log('network',options?.cmAction||'fetch',{endpoint:path,duration_ms:Math.round(w.performance.now()-began),action_id:p?.id,status:'error',error_type:e?.name});throw e}
  finally{if(p&&pending===p){p.network--;response('network_finished')}}
 };
 w.addEventListener('error',e=>log('browser_error','uncaught',{error_type:e.error?.name||'resource_error',line:e.lineno,status:'error'}),true);
@@ -91,7 +92,7 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 .medal-compose{border-top:1px solid var(--line);margin:18px 0;padding-top:5px}.requirement-row{display:grid;grid-template-columns:minmax(160px,1fr) 140px 65px 20px 50px;gap:8px;align-items:center;margin:9px 0}.requirement-row select,.requirement-row input{margin:0;min-width:0;font-size:12px;padding:10px 8px}.requirement-row .text{padding:8px 2px}.medal-progress{margin:15px 0;padding:14px;background:#f8faf4;border-radius:13px;border:1px solid #e1eadb}.medal-progress strong{font-size:12px;display:block}.medal-progress>small{display:block;margin-top:4px}.medal-condition{display:grid;grid-template-columns:19px minmax(0,1fr);gap:3px 5px;margin-top:12px;border-top:1px solid #e4ebdf;padding-top:10px}.condition-check{grid-row:span 4;color:#9ca68e}.complete .condition-check{color:#247968;font-weight:800}.condition-label{font-size:12px}.condition-need{grid-column:2;font-size:12px}.condition-earned{grid-column:2;display:flex;gap:5px;flex-wrap:wrap}.earned-medal{padding:2px 7px;border-radius:12px;background:#fff;font-size:12px}.medal-condition>small{grid-column:2}.message h3{font-size:14px;margin-bottom:7px}.message .medal-progress{min-width:min(380px,100%)}@media(max-width:700px){.requirement-row{grid-template-columns:minmax(0,1fr) 65px 20px 45px;padding:12px;background:#f8faf5;border-radius:12px;gap:7px}.requirement-target{grid-column:1/-1}.requirement-grade{grid-column:1}.requirement-count{grid-column:2}.requirement-row select{font-size:12px}.message .medal-progress{min-width:0}.message{width:95%}}
 
 .difficult-item{display:flex;align-items:flex-start;gap:16px;padding:16px 0;border-bottom:1px solid var(--line,#e9e4da)}.difficult-item:last-child{border-bottom:0}.difficult-body{flex:1;min-width:0}.difficult-body h3{margin:6px 0}.difficult-body p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}.difficult-body pre{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.difficult-body summary{cursor:pointer;padding:8px 0;font-size:14px}.difficult-item>button{flex:none;min-height:44px}#difficultCount{font-size:14px;color:#786d5c}.difficult-pagination{justify-content:space-between;margin-top:12px}@media(max-width:600px){.difficult-item{flex-direction:column;gap:8px}.difficult-item>button{width:100%}#difficultTitle{font-size:20px}}
-.event{grid-template-columns:70px 36px minmax(0,1fr) minmax(130px,auto)}.event-reward{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.earned-medal{font-size:24px;white-space:nowrap}.earned-medal small{font-size:12px;display:block}.stamp-target-btn{min-height:38px;padding:6px 10px;background:#fff5df;border:1px solid #d7bc82;border-radius:10px;color:#735719;font-size:13px;white-space:nowrap}.support-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.support-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;background:white;border:2px solid var(--support-color,#43814d);border-radius:10px;font-size:12px;line-height:1.3}.support-badge b{font-size:21px}.support-badge small{font-size:10px;color:var(--support-color,#43814d)}.plan-support-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #ebe7df}.plan-support-row:last-child{border-bottom:0}.plan-support-row small,.stats-table-wrap small{display:block;font-size:11px;color:#736c61}.stats-table-wrap{overflow:auto;max-width:100%}.stats-table-wrap table{width:100%;border-collapse:collapse;font-size:13px}.stats-table-wrap th,.stats-table-wrap td{padding:10px 8px;border-bottom:1px solid #e8e3da;vertical-align:top;text-align:left}.stats-table-wrap td:first-child{min-width:180px;max-width:300px;overflow-wrap:anywhere}.stats-table-wrap details p{font-size:11px;white-space:nowrap;margin:5px 0}.stats-table-wrap summary{font-size:12px;padding-top:7px;cursor:pointer}.low-rate{color:#b04d36;font-weight:700}.learning-bars{display:grid;gap:10px;margin-top:20px}.learning-bar-row{display:grid;grid-template-columns:minmax(140px,1fr) 2fr 50px;gap:10px;align-items:center;font-size:12px}.bar-track{height:20px;background:#eef0e9;border-radius:5px;overflow:hidden}.bar-fill{height:100%;background:#438979;border-radius:5px}.bar-label{overflow-wrap:anywhere}.learning-bar-row b{white-space:nowrap}#stampDialog{width:min(620px,calc(100% - 24px));max-height:90dvh;overflow:auto;border:1px solid #d4d9ce;border-radius:20px;padding:20px;color:inherit;background:#fffdf8}#stampDialog::backdrop{background:#162f2b80}#stampChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0}.stamp-choice{min-height:60px;font-size:13px;border:2px solid #e5e0d5;background:white;border-radius:12px;padding:7px}.stamp-choice.selected{border-color:#258068;background:#eef7ef}.actor-preview{display:inline-block;border:2px solid;padding:3px 9px;border-radius:10px;font-size:13px;margin:8px}.difficult-item{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:8px 0;gap:8px;align-items:center}.difficult-body h3{font-size:13px;margin:2px 0}.difficult-body>p{margin:3px 0;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.difficult-body small{font-size:10px}.difficult-body summary{font-size:11px;padding:3px 0}.difficult-item>button{min-height:34px;width:auto;padding:5px 8px;font-size:12px}.difficult-body details[open] p{display:block;font-size:12px;white-space:pre-wrap}.difficult-pagination{margin-top:4px}#difficultSection .card{padding:10px 16px}nav#nav{overflow:auto}nav#nav button{flex:none}@media(max-width:600px){.event{grid-template-columns:44px 24px minmax(0,1fr);gap:8px}.event-reward{grid-column:3;justify-content:flex-start}.event-icon{width:24px;font-size:14px}.learning-bar-row{grid-template-columns:110px minmax(60px,1fr) 42px;font-size:11px;gap:6px}#stampChoices{grid-template-columns:repeat(2,minmax(0,1fr))}.difficult-item{grid-template-columns:minmax(0,1fr) auto}.difficult-item>button{width:auto}.plan-support-row{gap:7px}.plan-support-row strong{font-size:13px}}
+.event{grid-template-columns:70px 36px minmax(0,1fr) minmax(130px,auto)}.event-reward{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.stamp-target-btn{min-height:38px;padding:6px 10px;background:#fff5df;border:1px solid #d7bc82;border-radius:10px;color:#735719;font-size:13px;white-space:nowrap}.support-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.support-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;background:white;border:2px solid var(--support-color,#43814d);border-radius:10px;font-size:12px;line-height:1.3}.support-badge b{font-size:21px}.support-badge small{font-size:10px;color:var(--support-color,#43814d)}.plan-support-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #ebe7df}.plan-support-row:last-child{border-bottom:0}.plan-support-row small{display:block;font-size:11px;color:#736c61}.low-rate{color:#b04d36;font-weight:700}.learning-bars{display:grid;gap:10px;margin-top:20px}.learning-bar-row{display:grid;grid-template-columns:minmax(140px,1fr) 2fr 50px;gap:10px;align-items:center;font-size:12px}.bar-track{height:20px;background:#eef0e9;border-radius:5px;overflow:hidden}.bar-fill{height:100%;background:#438979;border-radius:5px}.bar-label{overflow-wrap:anywhere}.learning-bar-row b{white-space:nowrap}#stampDialog{width:min(620px,calc(100% - 24px));max-height:90dvh;overflow:auto;border:1px solid #d4d9ce;border-radius:20px;padding:20px;color:inherit;background:#fffdf8}#stampDialog::backdrop{background:#162f2b80}#stampChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0}.stamp-choice{min-height:60px;font-size:13px;border:2px solid #e5e0d5;background:white;border-radius:12px;padding:7px}.stamp-choice.selected{border-color:#258068;background:#eef7ef}.actor-preview{display:inline-block;border:2px solid;padding:3px 9px;border-radius:10px;font-size:13px;margin:8px}.difficult-item{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:8px 0;gap:8px;align-items:center}.difficult-body h3{font-size:13px;margin:2px 0}.difficult-body>p{margin:3px 0;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.difficult-body small{font-size:10px}.difficult-body summary{font-size:11px;padding:3px 0}.difficult-item>button{min-height:34px;width:auto;padding:5px 8px;font-size:12px}.difficult-body details[open] p{display:block;font-size:12px;white-space:pre-wrap}.difficult-pagination{margin-top:4px}#difficultSection .card{padding:10px 16px}@media(max-width:600px){.event{grid-template-columns:44px 24px minmax(0,1fr);gap:8px}.event-reward{grid-column:3;justify-content:flex-start}.event-icon{width:24px;font-size:14px}.learning-bar-row{grid-template-columns:110px minmax(60px,1fr) 42px;font-size:11px;gap:6px}#stampChoices{grid-template-columns:repeat(2,minmax(0,1fr))}.difficult-item{grid-template-columns:minmax(0,1fr) auto}.difficult-item>button{width:auto}.plan-support-row{gap:7px}.plan-support-row strong{font-size:13px}}
 
 /* Shared vector artwork: the same stamp is displayed on the learner hub. */
 .cm-stamp-art{display:block;width:104px;max-width:100%;height:auto}.support-badge{padding:0!important;border:0!important;background:none!important;display:inline-block!important}.stamp,.stamp-choice{padding:5px!important;display:flex;align-items:center;justify-content:center;min-width:0}#stampChoices{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}.support-badges{gap:6px}.support-badges .cm-stamp-art{width:82px}
@@ -104,10 +105,10 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 #supporterManagement{margin-top:18px}#supporterManagement h3{margin-top:0}#supporterManagement>label{max-width:340px}.person-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 66px;gap:8px;align-items:center;margin:10px 0}.person-row input,.person-row select{min-width:0;width:100%;margin:0}.person-row button{padding:9px 10px}#supporterAddForm{padding-top:10px;border-top:1px solid var(--line,#e3e9e6)}#difficultSection.has-difficulties>.card{border-color:#dfa762;background:#fff9ee;box-shadow:0 0 0 1px #dfa76240}#difficultSection.has-difficulties #difficultTitle{color:#8c571b}#difficultSection.has-difficulties #difficultCount{display:inline-block;background:#f7dfbd;color:#75440c;border-radius:14px;padding:3px 10px;font-size:16px;font-weight:800}@media(max-width:480px){.person-row{grid-template-columns:minmax(0,1fr) 84px 58px;gap:6px}.person-row button{padding:8px 5px}}
 
 /* Compact, readable rows at phone width. */
-.plan-support-row{padding:12px 0!important;gap:8px!important}.plan-support-row strong{font-size:16px!important;line-height:1.4}.plan-support-row small{font-size:12px!important;margin:3px 0!important}.plan-support-row.is-completed{background:#e8f4ec;border-left:4px solid #509475;border-radius:8px;padding:10px!important;margin:4px 0}.stamp-target-btn{font-size:13px!important;min-height:38px!important;padding:7px 10px!important;white-space:nowrap}.event{display:grid!important;grid-template-columns:44px minmax(0,1fr);gap:6px 10px!important;padding:12px 0!important}.event h3{font-size:15px!important;line-height:1.4!important;margin:0!important}.event time{font-size:11px!important}.event-reward{grid-column:2;display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;margin:0!important}.earned-medal{font-size:28px!important}.earned-medal small{font-size:11px!important}.event-reward .support-badge{width:40px!important;height:40px!important}.event-reward .support-badge svg{width:29px!important;height:29px!important}.recommendation{color:#835a14!important;font-weight:700}.graduation-recommended{background:#fff5d8}
-@media(max-width:600px){#statsTable table,#statsTable tbody{display:block;width:100%}#statsTable thead{display:none}#statsTable tr{display:grid!important;grid-template-columns:1fr 1fr;gap:6px 12px;padding:12px 0!important;border-bottom:1px solid #e0e5df}#statsTable td{display:block!important;width:auto!important;padding:0!important;border:0!important;overflow-wrap:anywhere}#statsTable td:first-child,#statsTable td:last-child{grid-column:1/-1}#statsTable td:not(:first-child)::before{content:attr(data-label)' ';font-size:11px;color:#718179}#statsTable td:nth-child(3){white-space:nowrap;font-size:13px}#statsTable td:nth-child(4){grid-column:1/-1}#statsTable td:last-child{display:flex!important;align-items:center;gap:8px;flex-wrap:wrap}#statsTable details{font-size:12px}.target{gap:10px!important;padding:12px 0!important}.target button{font-size:13px!important;min-width:90px;padding:8px!important}.person-row{grid-template-columns:minmax(0,1fr) 72px 56px!important;gap:6px!important}.person-row input,.person-row select{min-width:0;padding:8px!important}}
+.plan-support-row{padding:12px 0!important;gap:8px!important}.plan-support-row strong{font-size:16px!important;line-height:1.4}.plan-support-row small{font-size:12px!important;margin:3px 0!important}.plan-support-row.is-completed{background:#e8f4ec;border-left:4px solid #509475;border-radius:8px;padding:10px!important;margin:4px 0}.stamp-target-btn{font-size:13px!important;min-height:38px!important;padding:7px 10px!important;white-space:nowrap}.event{display:grid!important;grid-template-columns:44px minmax(0,1fr);gap:6px 10px!important;padding:12px 0!important}.event h3{font-size:15px!important;line-height:1.4!important;margin:0!important}.event time{font-size:11px!important}.event-reward{grid-column:2;display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;margin:0!important}.event-reward .support-badge{width:40px!important;height:40px!important}.event-reward .support-badge svg{width:29px!important;height:29px!important}.recommendation{color:#835a14!important;font-weight:700}.graduation-recommended{background:#fff5d8}
+@media(max-width:600px){.target{gap:10px!important;padding:12px 0!important}.target button{font-size:13px!important;min-width:90px;padding:8px!important}.person-row{grid-template-columns:minmax(0,1fr) 72px 56px!important;gap:6px!important}.person-row input,.person-row select{min-width:0;padding:8px!important}}
 
-@media(max-width:600px){html,body{overflow-x:clip}.filters{gap:10px!important}.filters label{margin:4px 0!important;min-width:0!important}.filters .grow{min-width:0!important}.card{padding:16px!important}#nav{box-sizing:border-box;max-width:100%;left:0;right:0}#nav button{min-width:0!important;padding:8px 2px!important}.supporter-management label{margin:4px 0}.stats-table{overflow:visible}}
+@media(max-width:600px){html,body{overflow-x:clip}.filters{gap:10px!important}.filters label{margin:4px 0!important;min-width:0!important}.filters .grow{min-width:0!important}.card{padding:16px!important}#nav{box-sizing:border-box;max-width:100%;left:0;right:0}#nav button{min-width:0!important;padding:8px 2px!important}.supporter-management label{margin:4px 0}}
 </style><title>ちょこまな みまもり</title><style>
 .balance-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.75rem}
 .balance-group{padding:.7rem;border:1px solid #dce9e0;border-radius:12px}
@@ -115,48 +116,243 @@ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',attach,{once:t
 .balance-source{justify-content:space-between}.balance-source button,.show-row button{min-height:40px}
 .show-row+.show-row{border-top:1px solid #dce9e0}.show-row small{display:block}
 #showRequestsSection{margin-top:1rem}#planSummary{margin:.25rem 0 .75rem}
+#statsPage .card { min-width: 0; padding: 16px; }
+#statsPage h2 { margin: 0 0 4px; font-size: 18px; }
+#statsPage .analysis-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+#statsPage .analysis-filters label, #statsPage .analysis-filters select { margin: 0; min-width: 0; }
+#statsRefresh { white-space: nowrap; }
+#statsStatus:empty { display: none; }
+#statsTable { margin: 0 0 12px; padding: 0; list-style: none; }
+#statsTable:empty { display: none; }
+.unit-record {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  overflow-wrap: anywhere;
+}
+.unit-record:first-child { border-radius: 10px 10px 0 0; }
+.unit-record:last-child { border-bottom: 1px solid var(--line); border-radius: 0 0 10px 10px; }
+.unit-record:only-child { border-radius: 10px; }
+.unit-record:nth-child(even) { background: #f8fbf9; }
+.unit-record-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.unit-record-title { flex: 1 1 14rem; min-width: 0; margin: 0; font-size: 14px; }
+.unit-record-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.unit-record-actions button { min-height: 40px; padding: 4px 10px; font-size: 12px; }
+.unit-record-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
+  gap: 6px 10px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.unit-record-metrics dt { color: #526a62; font-size: 11px; }
+.unit-record-metrics dd { margin: 0; font-variant-numeric: tabular-nums; }
+.timeline-medal {
+  --medal-bg: #f4f5f5;
+  --medal-border: #cad2cf;
+  --medal-ink: #3c514a;
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 4px 9px;
+  border: 1px solid var(--medal-border);
+  border-radius: 10px;
+  background: var(--medal-bg);
+  color: var(--medal-ink);
+  line-height: 1.35;
+}
+.timeline-medal[data-grade="gold"] { --medal-bg: #fff4ce; --medal-border: #d9ae4c; --medal-ink: #674700; }
+.timeline-medal[data-grade="silver"] { --medal-bg: #edf2f8; --medal-border: #a5b5c8; --medal-ink: #354c66; }
+.timeline-medal[data-grade="bronze"] { --medal-bg: #fbeadf; --medal-border: #d5a185; --medal-ink: #773d22; }
+.timeline-medal-icon { font-size: 20px; }
+.timeline-medal strong, .timeline-medal small { display: block; overflow-wrap: anywhere; }
+.timeline-medal strong { font-size: 13px; }
+.timeline-medal small { font-size: 11px; }
+#analysisBalance > summary { cursor: pointer; font-weight: 700; }
+#analysisBalance .section-head { margin-top: 10px; }
+#analysisBalance h3 { margin: 0; }
+.analysis-priority-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 11px 12px;
+  margin-top: 8px;
+  background: #f8fbfa;
+  border: 1px solid #dce7e2;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.analysis-priority-row p { margin: 4px 0; }
+.analysis-priority-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.analysis-priority-actions button { min-height: 38px; padding: 5px 10px; }
+.analysis-detail { grid-column: 1 / -1; border-top: 1px solid #dce7e2; padding-top: 9px; }
+.analysis-detail ul { margin: 8px 0 12px; padding-inline-start: 22px; }
+.analysis-advice { white-space: pre-wrap; }
+.analysis-detail h4 { margin: 14px 0 4px; }
+.analysis-detail li + li { margin-top: 6px; }
+@media (max-width: 850px) {
+  #statsPage .analysis-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .analysis-priority-row { grid-template-columns: minmax(0, 1fr); }
+  .unit-record-title { flex-basis: 100%; }
+  .unit-record-actions button { min-height: 44px; }
+}
+.layout {
+  height: 100dvh;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+#managerScroll {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: scroll;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  padding-bottom: 72px;
+}
+#managerScroll:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+@media (max-width: 700px) {
+  .layout { display: flex; flex-direction: column; }
+  .layout > aside { flex: 0 0 auto; }
+  #nav button { flex: 1; min-width: 0; padding-inline: 2px; text-align: center; }
+  #nav button span { overflow-wrap: anywhere; }
+  #managerScroll { flex: 1 1 0; padding-bottom: 96px; }
+}
 </style></head>
-<body><div class="layout"><aside><a class="brand" href="#home"><span class="brandmark">ち</span><span>ちょこまな<small>みまもり</small></span></a><div class="side-note">離れていても、<br>がんばりのそばに。</div><nav id="nav" hidden><button data-page="home">◉ <span>きょうの学習</span></button><button data-page="stats">▥ <span>成績・復習</span></button><button data-page="talk">♬ <span>声とスタンプ</span><i id="unread" hidden></i></button><button data-page="settings">⚙ <span>保護者の設定</span></button></nav><div class="side-bottom"><span class="leaf">❧</span><p>小さな「できた！」を、<br>いっしょに。</p><small>CHOKOMANA MIMAMORI</small></div></aside>
-<main><header><div><div class="eyebrow" id="date"></div><h1 id="pageTitle">お子さまの学びと、つながる。</h1></div><button class="text" id="logout" hidden>ログアウト</button></header>
+<body><div class="layout"><aside><a class="brand" href="#home"><span class="brandmark">ち</span><span>ちょこまな<small>みまもり</small></span></a><div class="side-note">離れていても、<br>がんばりのそばに。</div><nav id="nav" hidden><button data-page="home">◉ <span>きょうの学習</span></button><button data-page="stats">▥ <span>分析・管理</span></button><button data-page="talk">♬ <span>声とスタンプ</span><i id="unread" hidden></i></button><button data-page="settings">⚙ <span>保護者の設定</span></button></nav><div class="side-bottom"><span class="leaf">❧</span><p>小さな「できた！」を、<br>いっしょに。</p><small>CHOKOMANA MIMAMORI</small></div></aside>
+<main id="managerScroll" tabindex="0" aria-label="メイン画面"><header><div><div class="eyebrow" id="date"></div><h1 id="pageTitle">お子さまの学びと、つながる。</h1></div><button class="text" id="logout" hidden>ログアウト</button></header>
 <div id="alert" role="alert" hidden></div>
 <section id="loginPage" class="login-layout"><div class="welcome"><div class="welcome-art"><span class="orbit one">✦</span><span class="orbit two">♡</span><div class="bigmark">ち<span>❧</span></div><span class="art-badge">ひとつずつ、できた！</span></div><h2>がんばる毎日に、<br>あなたの声を。</h2><p>学習をやりとげた記録を。<br>ちょこまなの学習を、ここから見守れます。</p><div class="feature-pills"><span>学習のお知らせ</span><span>声のおたより</span><span>応援スタンプ</span></div></div><div class="card login-card"><span class="eyebrow">WELCOME</span><h2>ちょこまなと連携</h2><p class="muted">お子さまが使っているIDとパスワードを入力してください。</p><form id="loginForm"><label>ID<input name="username" autocomplete="username" required maxlength="32" autocapitalize="none" spellcheck="false" placeholder="ちょこまなのID"></label><label>パスワード<input name="password" autocomplete="current-password" type="password" required maxlength="128" placeholder="パスワードを入力"></label><button class="primary full" type="submit">連携してはじめる <span>→</span></button></form><p class="fine">新規のID作成は、ちょこまな本体で行ってください。</p></div></section>
 <div id="app" hidden>
 <section id="homePage"><div class="hero card"><div><span class="eyebrow">TODAY’S LEARNING</span><h2><span id="learner"></span> の学びを<br>そっと見守りましょう。</h2><p id="lastActivity">学習記録を確認しています。</p></div><div class="hero-symbol" aria-hidden="true">❧<span>小さな一歩を、大きな喜びに。</span></div></div><section id="showRequestsSection" class="card" aria-labelledby="showRequestsTitle">
-<h3 id="showRequestsTitle">「これ、みて！」</h3><p id="showStatus" class="fine" role="status"></p>
+<h3 id="showRequestsTitle">アピール・これ、みて！</h3><p id="showStatus" class="fine" role="status"></p>
 <div id="showRequests"></div></section><section id="supporterManagement" class="card" aria-labelledby="supporterManagementTitle"><h3 id="supporterManagementTitle">管理する人</h3><label>この端末でスタンプを押す人<select id="activeSupporter"></select></label><div id="supporterList"></div><form id="supporterAddForm" class="person-row"><input id="supporterAddName" maxlength="24" required placeholder="新しい人の名前" aria-label="追加する人の名前"><select id="supporterAddColor" aria-label="追加する人の枠色"><option value="blue">青</option><option value="rose">ピンク</option><option value="green">緑</option><option value="purple">紫</option><option value="orange">オレンジ</option><option value="teal">青緑</option></select><button id="supporterAddSave" type="submit" class="secondary">追加</button></form></section><div class="notice card"><div class="notice-symbol">♧</div><div><h3 id="pushTitle">スマホにお知らせを届ける</h3><p id="pushStatus">通知を有効にすると、画面を閉じていても学習の開始・完了が届きます。</p><p id="installHelp" class="fine" hidden></p></div><button id="enablePush" class="primary">通知を有効に</button></div><div class="stats"><article class="card"><span>きょうの単元完了</span><b id="completed">—<small>回</small></b></article><article class="card"><span>きょうの学習開始</span><b id="started">—<small>回</small></b></article><article class="card"><span>届いた声のおたより</span><b id="voices">—<small>件</small></b></article></div><section aria-labelledby="todayPlanTitle"><div class="section-head"><h2 id="todayPlanTitle">きょうやることに応援</h2><button type="button" id="planRefresh" class="text">更新 ↻</button></div><p id="planSummary" class="muted"></p><div id="todayPlan" class="card"></div></section><section id="difficultSection" aria-labelledby="difficultTitle"><div class="section-head"><h2 id="difficultTitle">むずかしいボタンのリスト <small id="difficultCount">—</small></h2><button id="difficultRefresh" class="text" type="button">更新 ↻</button></div><div class="card"><p id="difficultStatus" class="fine" role="status">未解決の問題を確認しています。</p><div id="difficultList"></div><div class="inline difficult-pagination"><button id="difficultPrev" class="text" type="button" disabled>前の20件</button><span id="difficultPage" class="fine"></span><button id="difficultNext" class="text" type="button" disabled>次の20件</button></div></div></section><div class="section-head"><h2>学習のあしあと</h2><div><span id="syncTime" class="fine"></span><button id="refresh" class="text">更新 ↻</button></div></div><div id="timeline" class="card timeline"></div></section>
-<section id="statsPage" hidden><div class="section-head"><h2>成績・復習</h2><button id="statsRefresh" class="text">更新 ↻</button></div><p id="statsStatus" class="fine" role="status"></p><div class="card"><div class="filters"><label>教科<select id="statsSubject"><option value="">全アプリ</option></select></label><label>集計<select id="statsType"><option value="units">単元別</option><option value="questions">設問別</option></select></label><label>並び順<select id="statsSort"><option value="weak">正答率が低い順</option><option value="attempts">試行回数が多い順</option><option value="name">項目順</option></select></label><label class="grow">検索<input id="statsSearch" type="search" placeholder="単元・設問を検索"></label></div><p id="statsDefinition" class="fine"></p><div id="statsTable" class="stats-table-wrap"></div></div><div class="section-head"><h2>取り組みの棒グラフ</h2></div><div class="card"><div class="filters"><label>教科<select id="chartSubject"><option value="">全アプリ</option></select></label><label>期間<select id="chartPeriod"><option value="month">1か月単位</option><option value="all">累計</option></select></label><label>月<select id="chartMonth"></select></label><label>集計<select id="chartMetric"><option value="completed">完了回数</option><option value="attempts">試行回数</option></select></label></div><p class="fine">日本時間で集計。学習の開始日を基準に、各項目への取り組み回数を表示します。</p><div id="learningBars" class="learning-bars"></div></div></section>
+<section id="statsPage" hidden aria-label="分析・管理">
+  <div id="analysisResults" hidden>
+    <section id="analysisReview" class="card" aria-label="要確認"></section>
+    <section id="analysisRecommended" class="card" aria-label="修了推奨"></section>
+  </div>
+  <details class="card" id="analysisBalance">
+    <summary>きょう やること</summary>
+    <div class="section-head">
+      <h3>教科配分</h3>
+      <button type="button" id="reloadPlanSettings" class="text">更新 ↻</button>
+    </div>
+    <p class="muted">出題できる単元がない教科と、停止中の分類は自動出題から外れます。</p>
+    <p id="planSettingsStatus" class="fine" role="status"></p>
+    <form id="planBalanceForm" hidden>
+      <div id="planBalanceFields" class="balance-fields"></div>
+      <p id="planBalanceTotal" role="status"></p>
+      <button id="savePlanBalance" class="primary">教科配分を保存</button>
+    </form>
+  </details>
+  <section class="card" aria-labelledby="analysisTableTitle">
+    <h2 id="analysisTableTitle">単元別の学習記録</h2>
+    <div class="analysis-filters">
+      <label>学習アプリ<select id="statsSubject"><option value="">すべての学習アプリ</option></select></label>
+      <label>並び順
+        <select id="statsSort">
+          <option value="weak">正答率が低い順</option><option value="high">正答率が高い順</option>
+          <option value="avgLow">5回平均が低い順</option><option value="avgHigh">5回平均が高い順</option>
+          <option value="attempts">学習回数が多い順</option><option value="last">最近の学習順</option>
+        </select>
+      </label>
+      <label>修了状態
+        <select id="statsGraduation">
+          <option value="">すべて</option><option value="open">未認定</option><option value="done">修了認定済み</option>
+        </select>
+      </label>
+      <button type="button" id="statsRefresh" class="secondary">記録を更新</button>
+    </div>
+    <p id="statsStatus" class="fine" role="status"></p>
+    <p id="statsCounts" class="fine" role="status"></p>
+    <p id="statsEmpty" class="empty" hidden></p>
+    <ul id="statsTable" aria-label="学習単元一覧"></ul>
+    <details>
+      <summary>集計方法</summary>
+      <p class="fine">5回平均・15回平均は、同じ単元で完了した学習の正答率を1回ずつ同じ重みで平均します。回数が足りないときは、集計した回数を表示します。</p>
+      <p class="fine">☆は直近5回の平均が直近15回の平均より10ポイント以上高い単元、×は直近5回の平均が70％未満の単元です。両方に当てはまる場合は×を表示します。</p>
+      <p class="fine">正答率は自動採点された最初の回答で集計します。過去の記録は、保存済みの正解数と出題数を使います。</p>
+      <p class="fine">重点単元は「きょう やること」で優先します。修了認定すると重点を解除します。</p>
+    </details>
+  </section>
+</section>
 <section id="talkPage" hidden><div class="section-head"><div><span class="eyebrow">A LITTLE ENCOURAGEMENT</span><h2>気持ちを、ひとつ届けよう。</h2></div></div><div class="card"><h3>スタンプで応援</h3><p class="muted">学習中の画面にお届けします。</p><div id="stamps" class="stamps"></div></div><div class="card recorder"><div><h3>声のおたより</h3><p class="muted">最長30秒。録音を確認してから送れます。</p></div><div class="record-controls"><button id="record" class="record-btn">● 録音する</button><span id="recordTime" class="muted"></span></div><audio id="preview" controls hidden></audio><div class="medal-compose">
 <p id="replyShowContext" hidden><span id="replyShowLabel"></span> <button type="button" id="cancelShowReply" class="text">解除</button></p>
 <label>きけるタイミング<select id="voiceMode">
 <option value="immediate">すぐ聞ける</option><option value="medals">メダルを集めたら</option></select></label><label>おたよりの名前（任意）<input id="messageTitle" maxlength="60" placeholder="例：きょうのひみつメッセージ"></label><div id="medalRequirements" hidden><h3>この声をきくためのメダル</h3><p class="muted">指定した条件をすべて満たすと解放します。子ども側に届いた後のメダルだけを数えます。</p><div id="requirementRows"></div><button id="addRequirement" class="secondary" type="button">＋ 条件を追加</button></div><p class="fine">同じ単元のメダルを複数個にすることもできます。メダルは消費しません。</p></div><div id="recordActions" hidden><button id="sendVoice" class="primary">この声を送る</button><button id="discardVoice" class="text">録り直す</button></div></div><div class="section-head"><h2>おたよりのやりとり</h2><span class="fine">最新60件</span></div><div id="messages" class="messages"></div></section>
 <section id="settingsPage" hidden>
-<div class="card"><div class="section-head"><h3>「きょうやること」の教科配分</h3>
-<button type="button" id="reloadPlanSettings" class="text">更新 ↻</button></div>
-<p class="muted">出題できる単元がない教科と、停止中の分類は自動出題から外れます。</p>
-<p id="planSettingsStatus" class="fine" role="status">読み込み中…</p>
-<form id="planBalanceForm" hidden><div id="planBalanceFields" class="balance-fields"></div>
-<p id="planBalanceTotal" role="status"></p><button id="savePlanBalance" class="primary">教科配分を保存</button></form></div><div class="card"><h3>スマホの管理アプリ</h3><p id="installNote" class="muted">他の学習アプリと同じ構成で起動する、独立した管理用Streamlitアプリです。</p><button type="button" id="installApp" class="secondary">ホーム画面に追加・インストール</button><p class="fine">このStreamlit版だけでは、閉じている間の自動通知はできません。</p></div><div class="card pin-card"><div><span class="eyebrow">PARENT CONTROL</span><h2>保護者の設定</h2><p class="muted" id="pinState"></p></div><form id="pinForm"><label id="pinLabel">管理用PIN（数字6桁）<input name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" required></label><label id="pinConfirm" hidden>確認用PIN<input name="confirmation" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></label><button class="primary" type="submit" id="pinSubmit">PINで解除</button></form></div><div class="card"><h3>学習者の年齢</h3><p class="muted">「今日やること」の学習時間などに使います。</p><form id="ageForm" class="inline"><label>年齢<select name="age" id="age"></select></label><button class="secondary" type="submit">変更を保存</button></form></div><div class="card"><h3>修了認定</h3><p class="muted">単元・問題ごとに認定、解除できます。子ども側は次の同期時に反映します。</p><div class="filters"><label>教科<select id="subject"><option value="soroban">そろばん</option><option value="kotoba">国語</option><option value="geometry">図形</option></select></label><label>表示<select id="targetType"><option value="unit:">単元</option><option value="question:">個別の問題</option></select></label><label class="grow">検索<input id="targetSearch" type="search" placeholder="単元・問題の名前"></label></div><div id="targets"></div><button id="loadMore" class="text" hidden>さらに読み込む</button><p class="fine">現在、修了認定を備えている国語・そろばん・図形に対応しています。</p></div><div class="card"><h3>通知</h3><p class="muted">この管理端末への通知を設定します。</p><div class="inline"><button id="testPush" class="secondary">テスト通知を送る</button><button id="disablePush" class="text">この端末の通知を停止</button></div><p id="pushFailures" class="fine"></p><p class="fine">通知を継続するため、30日ごと、またはパスワード変更後に再ログインしてください。</p></div><div class="card"><div class="section-head"><h3>設定の変更履歴</h3><button id="auditBtn" class="text">確認する</button></div><div id="audit" class="fine">変更した日時と内容を記録します。</div></div></section>
+<div class="card"><h3>スマホの管理アプリ</h3><p id="installNote" class="muted">他の学習アプリと同じ構成で起動する、独立した管理用Streamlitアプリです。</p><button type="button" id="installApp" class="secondary">ホーム画面に追加・インストール</button><p class="fine">このStreamlit版だけでは、閉じている間の自動通知はできません。</p></div><div class="card pin-card"><div><span class="eyebrow">PARENT CONTROL</span><h2>保護者の設定</h2><p class="muted" id="pinState"></p></div><form id="pinForm"><label id="pinLabel">管理用PIN（数字6桁）<input name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" required></label><label id="pinConfirm" hidden>確認用PIN<input name="confirmation" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></label><button class="primary" type="submit" id="pinSubmit">PINで解除</button></form></div><div class="card"><h3>学習者の年齢</h3><p class="muted">「今日やること」の学習時間などに使います。</p><form id="ageForm" class="inline"><label>年齢<select name="age" id="age"></select></label><button class="secondary" type="submit">変更を保存</button></form></div><div class="card"><h3>修了認定</h3><p class="muted">単元・問題ごとに認定、解除できます。子ども側は次の同期時に反映します。</p><div class="filters"><label>教科<select id="subject"></select></label><label>表示<select id="targetType"><option value="unit:">単元</option><option value="question:">個別の問題</option></select></label><label class="grow">検索<input id="targetSearch" type="search" placeholder="単元・問題の名前"></label></div><div id="targets"></div><button id="loadMore" class="text" hidden>さらに読み込む</button><p class="fine">現在、修了認定を備えている国語・そろばん・図形に対応しています。</p></div><div class="card"><h3>通知</h3><p class="muted">この管理端末への通知を設定します。</p><div class="inline"><button id="testPush" class="secondary">テスト通知を送る</button><button id="disablePush" class="text">この端末の通知を停止</button></div><p id="pushFailures" class="fine"></p><p class="fine">通知を継続するため、30日ごと、またはパスワード変更後に再ログインしてください。</p></div><div class="card"><div class="section-head"><h3>設定の変更履歴</h3><button id="auditBtn" class="text">確認する</button></div><div id="audit" class="fine">変更した日時と内容を記録します。</div></div></section>
 </div><footer>ちょこまな みまもり <span>声と応援が、学びの力に。</span></footer></main></div><dialog id="stampDialog" aria-labelledby="stampDialogTitle"><div class="section-head"><h2 id="stampDialogTitle">スタンプで応援</h2><button type="button" id="stampClose" class="text">閉じる</button></div><p id="stampDestination"></p><div id="stampChoices"></div><button type="button" id="sendTargetStamp" class="primary full">このスタンプを送る</button></dialog>
 <dialog id="stampWhoDialog"><p id="stampWhoName"></p><button type="button" id="stampWhoClose">閉じる</button></dialog><div id="toast" role="status" hidden></div><script>const CM_STAMP_ART={"heart":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"だいすき\"><path d=\"M50 49C18 29 28 12 40 18L50 27 60 18C77 10 84 32 50 49Z\" fill=\"#ed6b8e\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"だいすき\"><path d=\"M50 49C18 29 28 12 40 18L50 27 60 18C77 10 84 32 50 49Z\" fill=\"#ed6b8e\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"だいすき\"><path d=\"M50 49C18 29 28 12 40 18L50 27 60 18C77 10 84 32 50 49Z\" fill=\"#ed6b8e\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"だいすき\"><path d=\"M50 49C18 29 28 12 40 18L50 27 60 18C77 10 84 32 50 49Z\" fill=\"#ed6b8e\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"だいすき\"><path d=\"M50 49C18 29 28 12 40 18L50 27 60 18C77 10 84 32 50 49Z\" fill=\"#ed6b8e\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"だいすき\"><path d=\"M50 49C18 29 28 12 40 18L50 27 60 18C77 10 84 32 50 49Z\" fill=\"#ed6b8e\"/></svg>"},"clap":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"がんばった！\"><path d=\"M36 44L28 29 32 26 40 35 33 18 38 16 46 32 41 12 46 12 53 32 52 17 57 17 61 38Q61 53 48 54Z\" fill=\"#f3bc70\"/><path d=\"M25 17L20 11M65 13L70 6M74 30L81 28\" stroke=\"#d99120\" stroke-width=\"3\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"がんばった！\"><path d=\"M36 44L28 29 32 26 40 35 33 18 38 16 46 32 41 12 46 12 53 32 52 17 57 17 61 38Q61 53 48 54Z\" fill=\"#f3bc70\"/><path d=\"M25 17L20 11M65 13L70 6M74 30L81 28\" stroke=\"#d99120\" stroke-width=\"3\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"がんばった！\"><path d=\"M36 44L28 29 32 26 40 35 33 18 38 16 46 32 41 12 46 12 53 32 52 17 57 17 61 38Q61 53 48 54Z\" fill=\"#f3bc70\"/><path d=\"M25 17L20 11M65 13L70 6M74 30L81 28\" stroke=\"#d99120\" stroke-width=\"3\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"がんばった！\"><path d=\"M36 44L28 29 32 26 40 35 33 18 38 16 46 32 41 12 46 12 53 32 52 17 57 17 61 38Q61 53 48 54Z\" fill=\"#f3bc70\"/><path d=\"M25 17L20 11M65 13L70 6M74 30L81 28\" stroke=\"#d99120\" stroke-width=\"3\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"がんばった！\"><path d=\"M36 44L28 29 32 26 40 35 33 18 38 16 46 32 41 12 46 12 53 32 52 17 57 17 61 38Q61 53 48 54Z\" fill=\"#f3bc70\"/><path d=\"M25 17L20 11M65 13L70 6M74 30L81 28\" stroke=\"#d99120\" stroke-width=\"3\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"がんばった！\"><path d=\"M36 44L28 29 32 26 40 35 33 18 38 16 46 32 41 12 46 12 53 32 52 17 57 17 61 38Q61 53 48 54Z\" fill=\"#f3bc70\"/><path d=\"M25 17L20 11M65 13L70 6M74 30L81 28\" stroke=\"#d99120\" stroke-width=\"3\"/></svg>"},"sparkle":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"すごい！\"><path d=\"M49 9L56 27 75 33 56 39 49 56 43 39 25 33 43 27Z\" fill=\"#e2ae26\"/><path d=\"M75 10L78 17 85 20 78 23 75 30 72 23 65 20 72 17Z\" fill=\"#8e72c2\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"すごい！\"><path d=\"M49 9L56 27 75 33 56 39 49 56 43 39 25 33 43 27Z\" fill=\"#e2ae26\"/><path d=\"M75 10L78 17 85 20 78 23 75 30 72 23 65 20 72 17Z\" fill=\"#8e72c2\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"すごい！\"><path d=\"M49 9L56 27 75 33 56 39 49 56 43 39 25 33 43 27Z\" fill=\"#e2ae26\"/><path d=\"M75 10L78 17 85 20 78 23 75 30 72 23 65 20 72 17Z\" fill=\"#8e72c2\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"すごい！\"><path d=\"M49 9L56 27 75 33 56 39 49 56 43 39 25 33 43 27Z\" fill=\"#e2ae26\"/><path d=\"M75 10L78 17 85 20 78 23 75 30 72 23 65 20 72 17Z\" fill=\"#8e72c2\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"すごい！\"><path d=\"M49 9L56 27 75 33 56 39 49 56 43 39 25 33 43 27Z\" fill=\"#e2ae26\"/><path d=\"M75 10L78 17 85 20 78 23 75 30 72 23 65 20 72 17Z\" fill=\"#8e72c2\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"すごい！\"><path d=\"M49 9L56 27 75 33 56 39 49 56 43 39 25 33 43 27Z\" fill=\"#e2ae26\"/><path d=\"M75 10L78 17 85 20 78 23 75 30 72 23 65 20 72 17Z\" fill=\"#8e72c2\"/></svg>"},"flower":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"はなまる\"><g fill=\"#ef87a7\"><circle cx=\"50\" cy=\"17\" r=\"12\"/><circle cx=\"66\" cy=\"29\" r=\"12\"/><circle cx=\"60\" cy=\"47\" r=\"12\"/><circle cx=\"40\" cy=\"47\" r=\"12\"/><circle cx=\"34\" cy=\"29\" r=\"12\"/></g><circle cx=\"50\" cy=\"32\" r=\"11\" fill=\"#ffdf66\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"はなまる\"><g fill=\"#ef87a7\"><circle cx=\"50\" cy=\"17\" r=\"12\"/><circle cx=\"66\" cy=\"29\" r=\"12\"/><circle cx=\"60\" cy=\"47\" r=\"12\"/><circle cx=\"40\" cy=\"47\" r=\"12\"/><circle cx=\"34\" cy=\"29\" r=\"12\"/></g><circle cx=\"50\" cy=\"32\" r=\"11\" fill=\"#ffdf66\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"はなまる\"><g fill=\"#ef87a7\"><circle cx=\"50\" cy=\"17\" r=\"12\"/><circle cx=\"66\" cy=\"29\" r=\"12\"/><circle cx=\"60\" cy=\"47\" r=\"12\"/><circle cx=\"40\" cy=\"47\" r=\"12\"/><circle cx=\"34\" cy=\"29\" r=\"12\"/></g><circle cx=\"50\" cy=\"32\" r=\"11\" fill=\"#ffdf66\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"はなまる\"><g fill=\"#ef87a7\"><circle cx=\"50\" cy=\"17\" r=\"12\"/><circle cx=\"66\" cy=\"29\" r=\"12\"/><circle cx=\"60\" cy=\"47\" r=\"12\"/><circle cx=\"40\" cy=\"47\" r=\"12\"/><circle cx=\"34\" cy=\"29\" r=\"12\"/></g><circle cx=\"50\" cy=\"32\" r=\"11\" fill=\"#ffdf66\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"はなまる\"><g fill=\"#ef87a7\"><circle cx=\"50\" cy=\"17\" r=\"12\"/><circle cx=\"66\" cy=\"29\" r=\"12\"/><circle cx=\"60\" cy=\"47\" r=\"12\"/><circle cx=\"40\" cy=\"47\" r=\"12\"/><circle cx=\"34\" cy=\"29\" r=\"12\"/></g><circle cx=\"50\" cy=\"32\" r=\"11\" fill=\"#ffdf66\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"はなまる\"><g fill=\"#ef87a7\"><circle cx=\"50\" cy=\"17\" r=\"12\"/><circle cx=\"66\" cy=\"29\" r=\"12\"/><circle cx=\"60\" cy=\"47\" r=\"12\"/><circle cx=\"40\" cy=\"47\" r=\"12\"/><circle cx=\"34\" cy=\"29\" r=\"12\"/></g><circle cx=\"50\" cy=\"32\" r=\"11\" fill=\"#ffdf66\"/></svg>"},"thumb":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いいね！\"><path d=\"M31 30H39L48 12Q56 9 55 18L53 28H68Q74 28 72 36L66 51H40L35 47H31Z\" fill=\"#f5bf78\"/><path d=\"M23 29H34V52H23Z\" fill=\"#559bd1\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いいね！\"><path d=\"M31 30H39L48 12Q56 9 55 18L53 28H68Q74 28 72 36L66 51H40L35 47H31Z\" fill=\"#f5bf78\"/><path d=\"M23 29H34V52H23Z\" fill=\"#559bd1\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いいね！\"><path d=\"M31 30H39L48 12Q56 9 55 18L53 28H68Q74 28 72 36L66 51H40L35 47H31Z\" fill=\"#f5bf78\"/><path d=\"M23 29H34V52H23Z\" fill=\"#559bd1\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いいね！\"><path d=\"M31 30H39L48 12Q56 9 55 18L53 28H68Q74 28 72 36L66 51H40L35 47H31Z\" fill=\"#f5bf78\"/><path d=\"M23 29H34V52H23Z\" fill=\"#559bd1\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いいね！\"><path d=\"M31 30H39L48 12Q56 9 55 18L53 28H68Q74 28 72 36L66 51H40L35 47H31Z\" fill=\"#f5bf78\"/><path d=\"M23 29H34V52H23Z\" fill=\"#559bd1\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いいね！\"><path d=\"M31 30H39L48 12Q56 9 55 18L53 28H68Q74 28 72 36L66 51H40L35 47H31Z\" fill=\"#f5bf78\"/><path d=\"M23 29H34V52H23Z\" fill=\"#559bd1\"/></svg>"},"star":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"きらり！\"><path d=\"M50 8L58 24 77 27 63 40 66 57 50 49 34 57 37 40 23 27 42 24Z\" fill=\"#f6ca39\" stroke=\"#d39a25\" stroke-width=\"2\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"きらり！\"><path d=\"M50 8L58 24 77 27 63 40 66 57 50 49 34 57 37 40 23 27 42 24Z\" fill=\"#f6ca39\" stroke=\"#d39a25\" stroke-width=\"2\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"きらり！\"><path d=\"M50 8L58 24 77 27 63 40 66 57 50 49 34 57 37 40 23 27 42 24Z\" fill=\"#f6ca39\" stroke=\"#d39a25\" stroke-width=\"2\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"きらり！\"><path d=\"M50 8L58 24 77 27 63 40 66 57 50 49 34 57 37 40 23 27 42 24Z\" fill=\"#f6ca39\" stroke=\"#d39a25\" stroke-width=\"2\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"きらり！\"><path d=\"M50 8L58 24 77 27 63 40 66 57 50 49 34 57 37 40 23 27 42 24Z\" fill=\"#f6ca39\" stroke=\"#d39a25\" stroke-width=\"2\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"きらり！\"><path d=\"M50 8L58 24 77 27 63 40 66 57 50 49 34 57 37 40 23 27 42 24Z\" fill=\"#f6ca39\" stroke=\"#d39a25\" stroke-width=\"2\"/></svg>"},"hug":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"おうえんしてるよ\"><path d=\"M50 43C28 31 34 18 42 22L50 29 58 22C68 16 76 32 50 43Z\" fill=\"#ed8eaa\"/><path d=\"M22 34Q19 52 41 55L43 48 30 39M78 34Q81 52 59 55L57 48 70 39\" fill=\"none\" stroke=\"#e7b47c\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"おうえんしてるよ\"><path d=\"M50 43C28 31 34 18 42 22L50 29 58 22C68 16 76 32 50 43Z\" fill=\"#ed8eaa\"/><path d=\"M22 34Q19 52 41 55L43 48 30 39M78 34Q81 52 59 55L57 48 70 39\" fill=\"none\" stroke=\"#e7b47c\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"おうえんしてるよ\"><path d=\"M50 43C28 31 34 18 42 22L50 29 58 22C68 16 76 32 50 43Z\" fill=\"#ed8eaa\"/><path d=\"M22 34Q19 52 41 55L43 48 30 39M78 34Q81 52 59 55L57 48 70 39\" fill=\"none\" stroke=\"#e7b47c\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"おうえんしてるよ\"><path d=\"M50 43C28 31 34 18 42 22L50 29 58 22C68 16 76 32 50 43Z\" fill=\"#ed8eaa\"/><path d=\"M22 34Q19 52 41 55L43 48 30 39M78 34Q81 52 59 55L57 48 70 39\" fill=\"none\" stroke=\"#e7b47c\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"おうえんしてるよ\"><path d=\"M50 43C28 31 34 18 42 22L50 29 58 22C68 16 76 32 50 43Z\" fill=\"#ed8eaa\"/><path d=\"M22 34Q19 52 41 55L43 48 30 39M78 34Q81 52 59 55L57 48 70 39\" fill=\"none\" stroke=\"#e7b47c\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"おうえんしてるよ\"><path d=\"M50 43C28 31 34 18 42 22L50 29 58 22C68 16 76 32 50 43Z\" fill=\"#ed8eaa\"/><path d=\"M22 34Q19 52 41 55L43 48 30 39M78 34Q81 52 59 55L57 48 70 39\" fill=\"none\" stroke=\"#e7b47c\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>"},"trophy":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"やったね！\"><path d=\"M33 12H67V27Q65 43 50 44 35 43 33 27Z\" fill=\"#edbf42\"/><path d=\"M33 17H23Q23 36 38 36M67 17H77Q77 36 62 36\" fill=\"none\" stroke=\"#d7a633\" stroke-width=\"5\"/><path d=\"M47 42H53V51H65V57H35V51H47Z\" fill=\"#ca9738\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"やったね！\"><path d=\"M33 12H67V27Q65 43 50 44 35 43 33 27Z\" fill=\"#edbf42\"/><path d=\"M33 17H23Q23 36 38 36M67 17H77Q77 36 62 36\" fill=\"none\" stroke=\"#d7a633\" stroke-width=\"5\"/><path d=\"M47 42H53V51H65V57H35V51H47Z\" fill=\"#ca9738\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"やったね！\"><path d=\"M33 12H67V27Q65 43 50 44 35 43 33 27Z\" fill=\"#edbf42\"/><path d=\"M33 17H23Q23 36 38 36M67 17H77Q77 36 62 36\" fill=\"none\" stroke=\"#d7a633\" stroke-width=\"5\"/><path d=\"M47 42H53V51H65V57H35V51H47Z\" fill=\"#ca9738\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"やったね！\"><path d=\"M33 12H67V27Q65 43 50 44 35 43 33 27Z\" fill=\"#edbf42\"/><path d=\"M33 17H23Q23 36 38 36M67 17H77Q77 36 62 36\" fill=\"none\" stroke=\"#d7a633\" stroke-width=\"5\"/><path d=\"M47 42H53V51H65V57H35V51H47Z\" fill=\"#ca9738\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"やったね！\"><path d=\"M33 12H67V27Q65 43 50 44 35 43 33 27Z\" fill=\"#edbf42\"/><path d=\"M33 17H23Q23 36 38 36M67 17H77Q77 36 62 36\" fill=\"none\" stroke=\"#d7a633\" stroke-width=\"5\"/><path d=\"M47 42H53V51H65V57H35V51H47Z\" fill=\"#ca9738\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"やったね！\"><path d=\"M33 12H67V27Q65 43 50 44 35 43 33 27Z\" fill=\"#edbf42\"/><path d=\"M33 17H23Q23 36 38 36M67 17H77Q77 36 62 36\" fill=\"none\" stroke=\"#d7a633\" stroke-width=\"5\"/><path d=\"M47 42H53V51H65V57H35V51H47Z\" fill=\"#ca9738\"/></svg>"},"rocket":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いってみよう\"><path d=\"M42 38Q43 18 68 9 75 34 55 43Z\" fill=\"#70a6cf\"/><circle cx=\"59\" cy=\"24\" r=\"6\" fill=\"#dff4ff\"/><path d=\"M43 29L30 32 27 48 43 39M60 41L58 54 42 58 48 42\" fill=\"#ed8490\"/><path d=\"M39 44L27 59 45 51\" fill=\"#f5bb39\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いってみよう\"><path d=\"M42 38Q43 18 68 9 75 34 55 43Z\" fill=\"#70a6cf\"/><circle cx=\"59\" cy=\"24\" r=\"6\" fill=\"#dff4ff\"/><path d=\"M43 29L30 32 27 48 43 39M60 41L58 54 42 58 48 42\" fill=\"#ed8490\"/><path d=\"M39 44L27 59 45 51\" fill=\"#f5bb39\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いってみよう\"><path d=\"M42 38Q43 18 68 9 75 34 55 43Z\" fill=\"#70a6cf\"/><circle cx=\"59\" cy=\"24\" r=\"6\" fill=\"#dff4ff\"/><path d=\"M43 29L30 32 27 48 43 39M60 41L58 54 42 58 48 42\" fill=\"#ed8490\"/><path d=\"M39 44L27 59 45 51\" fill=\"#f5bb39\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いってみよう\"><path d=\"M42 38Q43 18 68 9 75 34 55 43Z\" fill=\"#70a6cf\"/><circle cx=\"59\" cy=\"24\" r=\"6\" fill=\"#dff4ff\"/><path d=\"M43 29L30 32 27 48 43 39M60 41L58 54 42 58 48 42\" fill=\"#ed8490\"/><path d=\"M39 44L27 59 45 51\" fill=\"#f5bb39\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いってみよう\"><path d=\"M42 38Q43 18 68 9 75 34 55 43Z\" fill=\"#70a6cf\"/><circle cx=\"59\" cy=\"24\" r=\"6\" fill=\"#dff4ff\"/><path d=\"M43 29L30 32 27 48 43 39M60 41L58 54 42 58 48 42\" fill=\"#ed8490\"/><path d=\"M39 44L27 59 45 51\" fill=\"#f5bb39\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いってみよう\"><path d=\"M42 38Q43 18 68 9 75 34 55 43Z\" fill=\"#70a6cf\"/><circle cx=\"59\" cy=\"24\" r=\"6\" fill=\"#dff4ff\"/><path d=\"M43 29L30 32 27 48 43 39M60 41L58 54 42 58 48 42\" fill=\"#ed8490\"/><path d=\"M39 44L27 59 45 51\" fill=\"#f5bb39\"/></svg>"},"sun":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"にこにこ\"><g stroke=\"#e8af27\" stroke-width=\"3\"><path d=\"M50 3V11M50 53V61M21 32H29M71 32H79M29 11L35 18M65 47L71 54M29 54L35 47M65 18L71 11\"/></g><circle cx=\"50\" cy=\"32\" r=\"19\" fill=\"#f8cf4d\"/><path d=\"M41 36Q50 44 59 36\" fill=\"none\" stroke=\"#a8782a\" stroke-width=\"2\"/><g fill=\"#a8782a\"><circle cx=\"43\" cy=\"28\" r=\"2\"/><circle cx=\"57\" cy=\"28\" r=\"2\"/></g></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"にこにこ\"><g stroke=\"#e8af27\" stroke-width=\"3\"><path d=\"M50 3V11M50 53V61M21 32H29M71 32H79M29 11L35 18M65 47L71 54M29 54L35 47M65 18L71 11\"/></g><circle cx=\"50\" cy=\"32\" r=\"19\" fill=\"#f8cf4d\"/><path d=\"M41 36Q50 44 59 36\" fill=\"none\" stroke=\"#a8782a\" stroke-width=\"2\"/><g fill=\"#a8782a\"><circle cx=\"43\" cy=\"28\" r=\"2\"/><circle cx=\"57\" cy=\"28\" r=\"2\"/></g></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"にこにこ\"><g stroke=\"#e8af27\" stroke-width=\"3\"><path d=\"M50 3V11M50 53V61M21 32H29M71 32H79M29 11L35 18M65 47L71 54M29 54L35 47M65 18L71 11\"/></g><circle cx=\"50\" cy=\"32\" r=\"19\" fill=\"#f8cf4d\"/><path d=\"M41 36Q50 44 59 36\" fill=\"none\" stroke=\"#a8782a\" stroke-width=\"2\"/><g fill=\"#a8782a\"><circle cx=\"43\" cy=\"28\" r=\"2\"/><circle cx=\"57\" cy=\"28\" r=\"2\"/></g></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"にこにこ\"><g stroke=\"#e8af27\" stroke-width=\"3\"><path d=\"M50 3V11M50 53V61M21 32H29M71 32H79M29 11L35 18M65 47L71 54M29 54L35 47M65 18L71 11\"/></g><circle cx=\"50\" cy=\"32\" r=\"19\" fill=\"#f8cf4d\"/><path d=\"M41 36Q50 44 59 36\" fill=\"none\" stroke=\"#a8782a\" stroke-width=\"2\"/><g fill=\"#a8782a\"><circle cx=\"43\" cy=\"28\" r=\"2\"/><circle cx=\"57\" cy=\"28\" r=\"2\"/></g></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"にこにこ\"><g stroke=\"#e8af27\" stroke-width=\"3\"><path d=\"M50 3V11M50 53V61M21 32H29M71 32H79M29 11L35 18M65 47L71 54M29 54L35 47M65 18L71 11\"/></g><circle cx=\"50\" cy=\"32\" r=\"19\" fill=\"#f8cf4d\"/><path d=\"M41 36Q50 44 59 36\" fill=\"none\" stroke=\"#a8782a\" stroke-width=\"2\"/><g fill=\"#a8782a\"><circle cx=\"43\" cy=\"28\" r=\"2\"/><circle cx=\"57\" cy=\"28\" r=\"2\"/></g></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"にこにこ\"><g stroke=\"#e8af27\" stroke-width=\"3\"><path d=\"M50 3V11M50 53V61M21 32H29M71 32H79M29 11L35 18M65 47L71 54M29 54L35 47M65 18L71 11\"/></g><circle cx=\"50\" cy=\"32\" r=\"19\" fill=\"#f8cf4d\"/><path d=\"M41 36Q50 44 59 36\" fill=\"none\" stroke=\"#a8782a\" stroke-width=\"2\"/><g fill=\"#a8782a\"><circle cx=\"43\" cy=\"28\" r=\"2\"/><circle cx=\"57\" cy=\"28\" r=\"2\"/></g></svg>"},"train":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"しゅっぱつ！\"><rect x=\"31\" y=\"9\" width=\"38\" height=\"42\" rx=\"8\" fill=\"#5796c3\"/><rect x=\"37\" y=\"17\" width=\"26\" height=\"15\" rx=\"3\" fill=\"#cceaf2\"/><path d=\"M39 50L33 59M61 50L67 59M36 56H64\" stroke=\"#526878\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/><circle cx=\"60\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"しゅっぱつ！\"><rect x=\"31\" y=\"9\" width=\"38\" height=\"42\" rx=\"8\" fill=\"#5796c3\"/><rect x=\"37\" y=\"17\" width=\"26\" height=\"15\" rx=\"3\" fill=\"#cceaf2\"/><path d=\"M39 50L33 59M61 50L67 59M36 56H64\" stroke=\"#526878\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/><circle cx=\"60\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"しゅっぱつ！\"><rect x=\"31\" y=\"9\" width=\"38\" height=\"42\" rx=\"8\" fill=\"#5796c3\"/><rect x=\"37\" y=\"17\" width=\"26\" height=\"15\" rx=\"3\" fill=\"#cceaf2\"/><path d=\"M39 50L33 59M61 50L67 59M36 56H64\" stroke=\"#526878\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/><circle cx=\"60\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"しゅっぱつ！\"><rect x=\"31\" y=\"9\" width=\"38\" height=\"42\" rx=\"8\" fill=\"#5796c3\"/><rect x=\"37\" y=\"17\" width=\"26\" height=\"15\" rx=\"3\" fill=\"#cceaf2\"/><path d=\"M39 50L33 59M61 50L67 59M36 56H64\" stroke=\"#526878\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/><circle cx=\"60\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"しゅっぱつ！\"><rect x=\"31\" y=\"9\" width=\"38\" height=\"42\" rx=\"8\" fill=\"#5796c3\"/><rect x=\"37\" y=\"17\" width=\"26\" height=\"15\" rx=\"3\" fill=\"#cceaf2\"/><path d=\"M39 50L33 59M61 50L67 59M36 56H64\" stroke=\"#526878\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/><circle cx=\"60\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"しゅっぱつ！\"><rect x=\"31\" y=\"9\" width=\"38\" height=\"42\" rx=\"8\" fill=\"#5796c3\"/><rect x=\"37\" y=\"17\" width=\"26\" height=\"15\" rx=\"3\" fill=\"#cceaf2\"/><path d=\"M39 50L33 59M61 50L67 59M36 56H64\" stroke=\"#526878\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/><circle cx=\"60\" cy=\"41\" r=\"4\" fill=\"#ffe5a2\"/></svg>"},"smile":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"うれしいよ\"><circle cx=\"50\" cy=\"32\" r=\"25\" fill=\"#f7d461\"/><path d=\"M36 38Q50 53 64 38M36 27Q41 21 46 27M54 27Q59 21 64 27\" fill=\"none\" stroke=\"#91622b\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"うれしいよ\"><circle cx=\"50\" cy=\"32\" r=\"25\" fill=\"#f7d461\"/><path d=\"M36 38Q50 53 64 38M36 27Q41 21 46 27M54 27Q59 21 64 27\" fill=\"none\" stroke=\"#91622b\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"うれしいよ\"><circle cx=\"50\" cy=\"32\" r=\"25\" fill=\"#f7d461\"/><path d=\"M36 38Q50 53 64 38M36 27Q41 21 46 27M54 27Q59 21 64 27\" fill=\"none\" stroke=\"#91622b\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"うれしいよ\"><circle cx=\"50\" cy=\"32\" r=\"25\" fill=\"#f7d461\"/><path d=\"M36 38Q50 53 64 38M36 27Q41 21 46 27M54 27Q59 21 64 27\" fill=\"none\" stroke=\"#91622b\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"うれしいよ\"><circle cx=\"50\" cy=\"32\" r=\"25\" fill=\"#f7d461\"/><path d=\"M36 38Q50 53 64 38M36 27Q41 21 46 27M54 27Q59 21 64 27\" fill=\"none\" stroke=\"#91622b\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"うれしいよ\"><circle cx=\"50\" cy=\"32\" r=\"25\" fill=\"#f7d461\"/><path d=\"M36 38Q50 53 64 38M36 27Q41 21 46 27M54 27Q59 21 64 27\" fill=\"none\" stroke=\"#91622b\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>"},"go":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"これをがんばろう！\"><path d=\"M29 46L32 29 41 19 48 22 47 30 40 31 39 37Q54 27 67 37L72 47Q51 63 29 46Z\" fill=\"#f1ba75\" stroke=\"#cc9359\" stroke-width=\"2\"/><path d=\"M69 16L76 10M75 26L84 24\" stroke=\"#e8ad35\" stroke-width=\"3\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"これをがんばろう！\"><path d=\"M29 46L32 29 41 19 48 22 47 30 40 31 39 37Q54 27 67 37L72 47Q51 63 29 46Z\" fill=\"#f1ba75\" stroke=\"#cc9359\" stroke-width=\"2\"/><path d=\"M69 16L76 10M75 26L84 24\" stroke=\"#e8ad35\" stroke-width=\"3\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"これをがんばろう！\"><path d=\"M29 46L32 29 41 19 48 22 47 30 40 31 39 37Q54 27 67 37L72 47Q51 63 29 46Z\" fill=\"#f1ba75\" stroke=\"#cc9359\" stroke-width=\"2\"/><path d=\"M69 16L76 10M75 26L84 24\" stroke=\"#e8ad35\" stroke-width=\"3\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"これをがんばろう！\"><path d=\"M29 46L32 29 41 19 48 22 47 30 40 31 39 37Q54 27 67 37L72 47Q51 63 29 46Z\" fill=\"#f1ba75\" stroke=\"#cc9359\" stroke-width=\"2\"/><path d=\"M69 16L76 10M75 26L84 24\" stroke=\"#e8ad35\" stroke-width=\"3\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"これをがんばろう！\"><path d=\"M29 46L32 29 41 19 48 22 47 30 40 31 39 37Q54 27 67 37L72 47Q51 63 29 46Z\" fill=\"#f1ba75\" stroke=\"#cc9359\" stroke-width=\"2\"/><path d=\"M69 16L76 10M75 26L84 24\" stroke=\"#e8ad35\" stroke-width=\"3\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"これをがんばろう！\"><path d=\"M29 46L32 29 41 19 48 22 47 30 40 31 39 37Q54 27 67 37L72 47Q51 63 29 46Z\" fill=\"#f1ba75\" stroke=\"#cc9359\" stroke-width=\"2\"/><path d=\"M69 16L76 10M75 26L84 24\" stroke=\"#e8ad35\" stroke-width=\"3\"/></svg>"},"well_done":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よくできた！\"><path d=\"M28 56L38 25 62 47Z\" fill=\"#e5a447\"/><path d=\"M42 27Q59 11 76 22M51 40Q66 32 80 40\" fill=\"none\" stroke=\"#e67b9e\" stroke-width=\"4\"/><path d=\"M31 15L34 20M60 8L64 13M78 14L81 9M72 51L78 56\" stroke=\"#62a9b3\" stroke-width=\"4\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よくできた！\"><path d=\"M28 56L38 25 62 47Z\" fill=\"#e5a447\"/><path d=\"M42 27Q59 11 76 22M51 40Q66 32 80 40\" fill=\"none\" stroke=\"#e67b9e\" stroke-width=\"4\"/><path d=\"M31 15L34 20M60 8L64 13M78 14L81 9M72 51L78 56\" stroke=\"#62a9b3\" stroke-width=\"4\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よくできた！\"><path d=\"M28 56L38 25 62 47Z\" fill=\"#e5a447\"/><path d=\"M42 27Q59 11 76 22M51 40Q66 32 80 40\" fill=\"none\" stroke=\"#e67b9e\" stroke-width=\"4\"/><path d=\"M31 15L34 20M60 8L64 13M78 14L81 9M72 51L78 56\" stroke=\"#62a9b3\" stroke-width=\"4\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よくできた！\"><path d=\"M28 56L38 25 62 47Z\" fill=\"#e5a447\"/><path d=\"M42 27Q59 11 76 22M51 40Q66 32 80 40\" fill=\"none\" stroke=\"#e67b9e\" stroke-width=\"4\"/><path d=\"M31 15L34 20M60 8L64 13M78 14L81 9M72 51L78 56\" stroke=\"#62a9b3\" stroke-width=\"4\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よくできた！\"><path d=\"M28 56L38 25 62 47Z\" fill=\"#e5a447\"/><path d=\"M42 27Q59 11 76 22M51 40Q66 32 80 40\" fill=\"none\" stroke=\"#e67b9e\" stroke-width=\"4\"/><path d=\"M31 15L34 20M60 8L64 13M78 14L81 9M72 51L78 56\" stroke=\"#62a9b3\" stroke-width=\"4\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よくできた！\"><path d=\"M28 56L38 25 62 47Z\" fill=\"#e5a447\"/><path d=\"M42 27Q59 11 76 22M51 40Q66 32 80 40\" fill=\"none\" stroke=\"#e67b9e\" stroke-width=\"4\"/><path d=\"M31 15L34 20M60 8L64 13M78 14L81 9M72 51L78 56\" stroke=\"#62a9b3\" stroke-width=\"4\"/></svg>"},"thankyou":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ありがとう！\"><path d=\"M32 30L50 59 68 30\" fill=\"#c9dfba\"/><g fill=\"#ed8ea5\"><circle cx=\"35\" cy=\"23\" r=\"10\"/><circle cx=\"50\" cy=\"16\" r=\"10\"/><circle cx=\"65\" cy=\"23\" r=\"10\"/></g><path d=\"M43 45L57 45\" stroke=\"#d1964a\" stroke-width=\"5\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ありがとう！\"><path d=\"M32 30L50 59 68 30\" fill=\"#c9dfba\"/><g fill=\"#ed8ea5\"><circle cx=\"35\" cy=\"23\" r=\"10\"/><circle cx=\"50\" cy=\"16\" r=\"10\"/><circle cx=\"65\" cy=\"23\" r=\"10\"/></g><path d=\"M43 45L57 45\" stroke=\"#d1964a\" stroke-width=\"5\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ありがとう！\"><path d=\"M32 30L50 59 68 30\" fill=\"#c9dfba\"/><g fill=\"#ed8ea5\"><circle cx=\"35\" cy=\"23\" r=\"10\"/><circle cx=\"50\" cy=\"16\" r=\"10\"/><circle cx=\"65\" cy=\"23\" r=\"10\"/></g><path d=\"M43 45L57 45\" stroke=\"#d1964a\" stroke-width=\"5\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ありがとう！\"><path d=\"M32 30L50 59 68 30\" fill=\"#c9dfba\"/><g fill=\"#ed8ea5\"><circle cx=\"35\" cy=\"23\" r=\"10\"/><circle cx=\"50\" cy=\"16\" r=\"10\"/><circle cx=\"65\" cy=\"23\" r=\"10\"/></g><path d=\"M43 45L57 45\" stroke=\"#d1964a\" stroke-width=\"5\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ありがとう！\"><path d=\"M32 30L50 59 68 30\" fill=\"#c9dfba\"/><g fill=\"#ed8ea5\"><circle cx=\"35\" cy=\"23\" r=\"10\"/><circle cx=\"50\" cy=\"16\" r=\"10\"/><circle cx=\"65\" cy=\"23\" r=\"10\"/></g><path d=\"M43 45L57 45\" stroke=\"#d1964a\" stroke-width=\"5\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ありがとう！\"><path d=\"M32 30L50 59 68 30\" fill=\"#c9dfba\"/><g fill=\"#ed8ea5\"><circle cx=\"35\" cy=\"23\" r=\"10\"/><circle cx=\"50\" cy=\"16\" r=\"10\"/><circle cx=\"65\" cy=\"23\" r=\"10\"/></g><path d=\"M43 45L57 45\" stroke=\"#d1964a\" stroke-width=\"5\"/></svg>"},"together":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いっしょにやろう\"><path d=\"M23 25L40 19 52 29 61 23 78 32 61 51 49 52 33 39Z\" fill=\"#e8b67c\"/><path d=\"M40 23L33 33 41 37 51 30 66 42\" fill=\"none\" stroke=\"#b98759\" stroke-width=\"3\"/><path d=\"M17 23L26 20 37 41 28 47M76 25L84 31 70 49 62 43\" fill=\"#86b2ce\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いっしょにやろう\"><path d=\"M23 25L40 19 52 29 61 23 78 32 61 51 49 52 33 39Z\" fill=\"#e8b67c\"/><path d=\"M40 23L33 33 41 37 51 30 66 42\" fill=\"none\" stroke=\"#b98759\" stroke-width=\"3\"/><path d=\"M17 23L26 20 37 41 28 47M76 25L84 31 70 49 62 43\" fill=\"#86b2ce\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いっしょにやろう\"><path d=\"M23 25L40 19 52 29 61 23 78 32 61 51 49 52 33 39Z\" fill=\"#e8b67c\"/><path d=\"M40 23L33 33 41 37 51 30 66 42\" fill=\"none\" stroke=\"#b98759\" stroke-width=\"3\"/><path d=\"M17 23L26 20 37 41 28 47M76 25L84 31 70 49 62 43\" fill=\"#86b2ce\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いっしょにやろう\"><path d=\"M23 25L40 19 52 29 61 23 78 32 61 51 49 52 33 39Z\" fill=\"#e8b67c\"/><path d=\"M40 23L33 33 41 37 51 30 66 42\" fill=\"none\" stroke=\"#b98759\" stroke-width=\"3\"/><path d=\"M17 23L26 20 37 41 28 47M76 25L84 31 70 49 62 43\" fill=\"#86b2ce\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いっしょにやろう\"><path d=\"M23 25L40 19 52 29 61 23 78 32 61 51 49 52 33 39Z\" fill=\"#e8b67c\"/><path d=\"M40 23L33 33 41 37 51 30 66 42\" fill=\"none\" stroke=\"#b98759\" stroke-width=\"3\"/><path d=\"M17 23L26 20 37 41 28 47M76 25L84 31 70 49 62 43\" fill=\"#86b2ce\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"いっしょにやろう\"><path d=\"M23 25L40 19 52 29 61 23 78 32 61 51 49 52 33 39Z\" fill=\"#e8b67c\"/><path d=\"M40 23L33 33 41 37 51 30 66 42\" fill=\"none\" stroke=\"#b98759\" stroke-width=\"3\"/><path d=\"M17 23L26 20 37 41 28 47M76 25L84 31 70 49 62 43\" fill=\"#86b2ce\"/></svg>"},"tryagain":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"またやってみよう\"><path d=\"M50 58V27\" stroke=\"#4d9363\" stroke-width=\"4\"/><path d=\"M50 34Q26 37 26 16 49 14 50 34\" fill=\"#82b884\"/><path d=\"M51 26Q72 29 76 7 54 7 51 26\" fill=\"#a2cc8c\"/><path d=\"M34 59H66\" stroke=\"#c49b65\" stroke-width=\"4\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"またやってみよう\"><path d=\"M50 58V27\" stroke=\"#4d9363\" stroke-width=\"4\"/><path d=\"M50 34Q26 37 26 16 49 14 50 34\" fill=\"#82b884\"/><path d=\"M51 26Q72 29 76 7 54 7 51 26\" fill=\"#a2cc8c\"/><path d=\"M34 59H66\" stroke=\"#c49b65\" stroke-width=\"4\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"またやってみよう\"><path d=\"M50 58V27\" stroke=\"#4d9363\" stroke-width=\"4\"/><path d=\"M50 34Q26 37 26 16 49 14 50 34\" fill=\"#82b884\"/><path d=\"M51 26Q72 29 76 7 54 7 51 26\" fill=\"#a2cc8c\"/><path d=\"M34 59H66\" stroke=\"#c49b65\" stroke-width=\"4\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"またやってみよう\"><path d=\"M50 58V27\" stroke=\"#4d9363\" stroke-width=\"4\"/><path d=\"M50 34Q26 37 26 16 49 14 50 34\" fill=\"#82b884\"/><path d=\"M51 26Q72 29 76 7 54 7 51 26\" fill=\"#a2cc8c\"/><path d=\"M34 59H66\" stroke=\"#c49b65\" stroke-width=\"4\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"またやってみよう\"><path d=\"M50 58V27\" stroke=\"#4d9363\" stroke-width=\"4\"/><path d=\"M50 34Q26 37 26 16 49 14 50 34\" fill=\"#82b884\"/><path d=\"M51 26Q72 29 76 7 54 7 51 26\" fill=\"#a2cc8c\"/><path d=\"M34 59H66\" stroke=\"#c49b65\" stroke-width=\"4\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"またやってみよう\"><path d=\"M50 58V27\" stroke=\"#4d9363\" stroke-width=\"4\"/><path d=\"M50 34Q26 37 26 16 49 14 50 34\" fill=\"#82b884\"/><path d=\"M51 26Q72 29 76 7 54 7 51 26\" fill=\"#a2cc8c\"/><path d=\"M34 59H66\" stroke=\"#c49b65\" stroke-width=\"4\"/></svg>"},"great":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"たいへんよくできました\"><circle cx=\"50\" cy=\"32\" r=\"22\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"5\"/><circle cx=\"50\" cy=\"32\" r=\"13\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"4\"/><path d=\"M29 11L23 17M71 11L77 17M29 53L23 47M71 53L77 47\" stroke=\"#dc718e\" stroke-width=\"4\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"たいへんよくできました\"><circle cx=\"50\" cy=\"32\" r=\"22\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"5\"/><circle cx=\"50\" cy=\"32\" r=\"13\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"4\"/><path d=\"M29 11L23 17M71 11L77 17M29 53L23 47M71 53L77 47\" stroke=\"#dc718e\" stroke-width=\"4\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"たいへんよくできました\"><circle cx=\"50\" cy=\"32\" r=\"22\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"5\"/><circle cx=\"50\" cy=\"32\" r=\"13\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"4\"/><path d=\"M29 11L23 17M71 11L77 17M29 53L23 47M71 53L77 47\" stroke=\"#dc718e\" stroke-width=\"4\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"たいへんよくできました\"><circle cx=\"50\" cy=\"32\" r=\"22\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"5\"/><circle cx=\"50\" cy=\"32\" r=\"13\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"4\"/><path d=\"M29 11L23 17M71 11L77 17M29 53L23 47M71 53L77 47\" stroke=\"#dc718e\" stroke-width=\"4\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"たいへんよくできました\"><circle cx=\"50\" cy=\"32\" r=\"22\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"5\"/><circle cx=\"50\" cy=\"32\" r=\"13\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"4\"/><path d=\"M29 11L23 17M71 11L77 17M29 53L23 47M71 53L77 47\" stroke=\"#dc718e\" stroke-width=\"4\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"15 0 72 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"たいへんよくできました\"><circle cx=\"50\" cy=\"32\" r=\"22\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"5\"/><circle cx=\"50\" cy=\"32\" r=\"13\" fill=\"none\" stroke=\"#dc718e\" stroke-width=\"4\"/><path d=\"M29 11L23 17M71 11L77 17M29 53L23 47M71 53L77 47\" stroke=\"#dc718e\" stroke-width=\"4\"/></svg>"},"progress":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"前よりできるようになったね\"><path d=\"M14 49h38M18 43V32h8v11m8 0V24h8v19m8 0V15h8v28\" fill=\"none\" stroke=\"#399678\" stroke-width=\"5\"/><path d=\"M15 26L49 9m-9 0h10v10\" fill=\"none\" stroke=\"#e5a52e\" stroke-width=\"4\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"前よりできるようになったね\"><path d=\"M14 49h38M18 43V32h8v11m8 0V24h8v19m8 0V15h8v28\" fill=\"none\" stroke=\"#399678\" stroke-width=\"5\"/><path d=\"M15 26L49 9m-9 0h10v10\" fill=\"none\" stroke=\"#e5a52e\" stroke-width=\"4\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"前よりできるようになったね\"><path d=\"M14 49h38M18 43V32h8v11m8 0V24h8v19m8 0V15h8v28\" fill=\"none\" stroke=\"#399678\" stroke-width=\"5\"/><path d=\"M15 26L49 9m-9 0h10v10\" fill=\"none\" stroke=\"#e5a52e\" stroke-width=\"4\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"前よりできるようになったね\"><path d=\"M14 49h38M18 43V32h8v11m8 0V24h8v19m8 0V15h8v28\" fill=\"none\" stroke=\"#399678\" stroke-width=\"5\"/><path d=\"M15 26L49 9m-9 0h10v10\" fill=\"none\" stroke=\"#e5a52e\" stroke-width=\"4\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"前よりできるようになったね\"><path d=\"M14 49h38M18 43V32h8v11m8 0V24h8v19m8 0V15h8v28\" fill=\"none\" stroke=\"#399678\" stroke-width=\"5\"/><path d=\"M15 26L49 9m-9 0h10v10\" fill=\"none\" stroke=\"#e5a52e\" stroke-width=\"4\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"前よりできるようになったね\"><path d=\"M14 49h38M18 43V32h8v11m8 0V24h8v19m8 0V15h8v28\" fill=\"none\" stroke=\"#399678\" stroke-width=\"5\"/><path d=\"M15 26L49 9m-9 0h10v10\" fill=\"none\" stroke=\"#e5a52e\" stroke-width=\"4\"/></svg>"},"persevere":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"あきらめずに考えたね\"><path d=\"M6 55L25 20l13 19 9-13 15 29Z\" fill=\"#a9cfba\"/><path d=\"M25 20V7m0 0h14l-5 6h-9\" fill=\"#f5b458\" stroke=\"#a66b21\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"38\" r=\"4\" fill=\"#f4bc83\"/><path d=\"M24 42l6 6 7-9m-7 9-7 9m7-9 9 7\" fill=\"none\" stroke=\"#517baf\" stroke-width=\"4\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"あきらめずに考えたね\"><path d=\"M6 55L25 20l13 19 9-13 15 29Z\" fill=\"#a9cfba\"/><path d=\"M25 20V7m0 0h14l-5 6h-9\" fill=\"#f5b458\" stroke=\"#a66b21\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"38\" r=\"4\" fill=\"#f4bc83\"/><path d=\"M24 42l6 6 7-9m-7 9-7 9m7-9 9 7\" fill=\"none\" stroke=\"#517baf\" stroke-width=\"4\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"あきらめずに考えたね\"><path d=\"M6 55L25 20l13 19 9-13 15 29Z\" fill=\"#a9cfba\"/><path d=\"M25 20V7m0 0h14l-5 6h-9\" fill=\"#f5b458\" stroke=\"#a66b21\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"38\" r=\"4\" fill=\"#f4bc83\"/><path d=\"M24 42l6 6 7-9m-7 9-7 9m7-9 9 7\" fill=\"none\" stroke=\"#517baf\" stroke-width=\"4\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"あきらめずに考えたね\"><path d=\"M6 55L25 20l13 19 9-13 15 29Z\" fill=\"#a9cfba\"/><path d=\"M25 20V7m0 0h14l-5 6h-9\" fill=\"#f5b458\" stroke=\"#a66b21\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"38\" r=\"4\" fill=\"#f4bc83\"/><path d=\"M24 42l6 6 7-9m-7 9-7 9m7-9 9 7\" fill=\"none\" stroke=\"#517baf\" stroke-width=\"4\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"あきらめずに考えたね\"><path d=\"M6 55L25 20l13 19 9-13 15 29Z\" fill=\"#a9cfba\"/><path d=\"M25 20V7m0 0h14l-5 6h-9\" fill=\"#f5b458\" stroke=\"#a66b21\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"38\" r=\"4\" fill=\"#f4bc83\"/><path d=\"M24 42l6 6 7-9m-7 9-7 9m7-9 9 7\" fill=\"none\" stroke=\"#517baf\" stroke-width=\"4\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"あきらめずに考えたね\"><path d=\"M6 55L25 20l13 19 9-13 15 29Z\" fill=\"#a9cfba\"/><path d=\"M25 20V7m0 0h14l-5 6h-9\" fill=\"#f5b458\" stroke=\"#a66b21\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"38\" r=\"4\" fill=\"#f4bc83\"/><path d=\"M24 42l6 6 7-9m-7 9-7 9m7-9 9 7\" fill=\"none\" stroke=\"#517baf\" stroke-width=\"4\"/></svg>"},"retry":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"もう一度やってみよう\"><path d=\"M13 23A23 23 0 1 1 12 43m1-20V10m0 13h13\" fill=\"none\" stroke=\"#5d9c7b\" stroke-width=\"4\"/><path d=\"M36 47V30m0 9Q22 39 23 27q13 0 13 12m0-6q15 0 15-13-15 0-15 13\" fill=\"#a5cb7b\" stroke=\"#669b55\" stroke-width=\"2\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"もう一度やってみよう\"><path d=\"M13 23A23 23 0 1 1 12 43m1-20V10m0 13h13\" fill=\"none\" stroke=\"#5d9c7b\" stroke-width=\"4\"/><path d=\"M36 47V30m0 9Q22 39 23 27q13 0 13 12m0-6q15 0 15-13-15 0-15 13\" fill=\"#a5cb7b\" stroke=\"#669b55\" stroke-width=\"2\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"もう一度やってみよう\"><path d=\"M13 23A23 23 0 1 1 12 43m1-20V10m0 13h13\" fill=\"none\" stroke=\"#5d9c7b\" stroke-width=\"4\"/><path d=\"M36 47V30m0 9Q22 39 23 27q13 0 13 12m0-6q15 0 15-13-15 0-15 13\" fill=\"#a5cb7b\" stroke=\"#669b55\" stroke-width=\"2\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"もう一度やってみよう\"><path d=\"M13 23A23 23 0 1 1 12 43m1-20V10m0 13h13\" fill=\"none\" stroke=\"#5d9c7b\" stroke-width=\"4\"/><path d=\"M36 47V30m0 9Q22 39 23 27q13 0 13 12m0-6q15 0 15-13-15 0-15 13\" fill=\"#a5cb7b\" stroke=\"#669b55\" stroke-width=\"2\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"もう一度やってみよう\"><path d=\"M13 23A23 23 0 1 1 12 43m1-20V10m0 13h13\" fill=\"none\" stroke=\"#5d9c7b\" stroke-width=\"4\"/><path d=\"M36 47V30m0 9Q22 39 23 27q13 0 13 12m0-6q15 0 15-13-15 0-15 13\" fill=\"#a5cb7b\" stroke=\"#669b55\" stroke-width=\"2\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"もう一度やってみよう\"><path d=\"M13 23A23 23 0 1 1 12 43m1-20V10m0 13h13\" fill=\"none\" stroke=\"#5d9c7b\" stroke-width=\"4\"/><path d=\"M36 47V30m0 9Q22 39 23 27q13 0 13 12m0-6q15 0 15-13-15 0-15 13\" fill=\"#a5cb7b\" stroke=\"#669b55\" stroke-width=\"2\"/></svg>"},"careful":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よく見つけたね\"><circle cx=\"28\" cy=\"27\" r=\"18\" fill=\"#e8f7fa\" stroke=\"#4e94a5\" stroke-width=\"4\"/><path d=\"M41 41l16 16M19 27l6 6 13-15\" fill=\"none\" stroke=\"#5a9975\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よく見つけたね\"><circle cx=\"28\" cy=\"27\" r=\"18\" fill=\"#e8f7fa\" stroke=\"#4e94a5\" stroke-width=\"4\"/><path d=\"M41 41l16 16M19 27l6 6 13-15\" fill=\"none\" stroke=\"#5a9975\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よく見つけたね\"><circle cx=\"28\" cy=\"27\" r=\"18\" fill=\"#e8f7fa\" stroke=\"#4e94a5\" stroke-width=\"4\"/><path d=\"M41 41l16 16M19 27l6 6 13-15\" fill=\"none\" stroke=\"#5a9975\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よく見つけたね\"><circle cx=\"28\" cy=\"27\" r=\"18\" fill=\"#e8f7fa\" stroke=\"#4e94a5\" stroke-width=\"4\"/><path d=\"M41 41l16 16M19 27l6 6 13-15\" fill=\"none\" stroke=\"#5a9975\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よく見つけたね\"><circle cx=\"28\" cy=\"27\" r=\"18\" fill=\"#e8f7fa\" stroke=\"#4e94a5\" stroke-width=\"4\"/><path d=\"M41 41l16 16M19 27l6 6 13-15\" fill=\"none\" stroke=\"#5a9975\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"よく見つけたね\"><circle cx=\"28\" cy=\"27\" r=\"18\" fill=\"#e8f7fa\" stroke=\"#4e94a5\" stroke-width=\"4\"/><path d=\"M41 41l16 16M19 27l6 6 13-15\" fill=\"none\" stroke=\"#5a9975\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>"},"rest":{"blue":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ひと休みしよう\"><path d=\"M13 27h33v17q-16 17-33 0Zm33 2h7q13 8 0 16h-7\" fill=\"#fae7bb\" stroke=\"#b49050\" stroke-width=\"3\"/><path d=\"M21 20q-7-5 0-11m12 11q-7-5 0-11M8 55h48\" fill=\"none\" stroke=\"#aeaa9d\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","rose":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ひと休みしよう\"><path d=\"M13 27h33v17q-16 17-33 0Zm33 2h7q13 8 0 16h-7\" fill=\"#fae7bb\" stroke=\"#b49050\" stroke-width=\"3\"/><path d=\"M21 20q-7-5 0-11m12 11q-7-5 0-11M8 55h48\" fill=\"none\" stroke=\"#aeaa9d\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","green":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ひと休みしよう\"><path d=\"M13 27h33v17q-16 17-33 0Zm33 2h7q13 8 0 16h-7\" fill=\"#fae7bb\" stroke=\"#b49050\" stroke-width=\"3\"/><path d=\"M21 20q-7-5 0-11m12 11q-7-5 0-11M8 55h48\" fill=\"none\" stroke=\"#aeaa9d\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","purple":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ひと休みしよう\"><path d=\"M13 27h33v17q-16 17-33 0Zm33 2h7q13 8 0 16h-7\" fill=\"#fae7bb\" stroke=\"#b49050\" stroke-width=\"3\"/><path d=\"M21 20q-7-5 0-11m12 11q-7-5 0-11M8 55h48\" fill=\"none\" stroke=\"#aeaa9d\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","orange":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ひと休みしよう\"><path d=\"M13 27h33v17q-16 17-33 0Zm33 2h7q13 8 0 16h-7\" fill=\"#fae7bb\" stroke=\"#b49050\" stroke-width=\"3\"/><path d=\"M21 20q-7-5 0-11m12 11q-7-5 0-11M8 55h48\" fill=\"none\" stroke=\"#aeaa9d\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>","teal":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 68 64\" class=\"cm-stamp-icon\" role=\"img\" aria-label=\"ひと休みしよう\"><path d=\"M13 27h33v17q-16 17-33 0Zm33 2h7q13 8 0 16h-7\" fill=\"#fae7bb\" stroke=\"#b49050\" stroke-width=\"3\"/><path d=\"M21 20q-7-5 0-11m12 11q-7-5 0-11M8 55h48\" fill=\"none\" stroke=\"#aeaa9d\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>"}};
 function cmStampArt(key,color){return CM_STAMP_ART[key]?.[color]||CM_STAMP_ART.flower.green}
 </script><script>'use strict';
 const API='https://keewulninyoeylgflshb.supabase.co/functions/v1/chokomana-watch';
 const $=s=>document.querySelector(s), STORE='chokomana_watch_session_v1';
-let token=localStorage.getItem(STORE)||'',state=null,page='home',pollBusy=false,targets=[],targetState={},offset=0,recorder=null,stream=null,blob=null,previewURL=null,recordAt=0,recordTimer=null,voiceId=null,messageSignature='',toastTimer;
+let token=localStorage.getItem(STORE)||'',state=null,page='home',pollBusy=false,dashboardAt=0,homeExtrasAt=0,targets=[],targetState={},offset=0,recorder=null,stream=null,blob=null,previewURL=null,recordAt=0,recordTimer=null,voiceId=null,messageSignature='',toastTimer;
 $('#date').textContent=new Intl.DateTimeFormat('ja-JP',{dateStyle:'full',timeZone:'Asia/Tokyo'}).format(new Date());
 for(let i=1;i<=100;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'歳';$('#age').append(o)}
 function toast(text){$('#toast').textContent=text;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4500)}
 function error(e){$('#alert').textContent=e.message||String(e);$('#alert').hidden=false}
 function clearError(){$('#alert').hidden=true}
-async function api(action,data={}){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','X-CM-Session':token},body:JSON.stringify({action,...data}),signal:AbortSignal.timeout(30000)});const result=await r.json();if(!r.ok){if(r.status===401&&action!=='login'){token='';localStorage.removeItem(STORE);showLogin()}throw new Error(result.error||'通信に失敗しました。')}return result}
+async function api(action,data={}){const requestToken=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','X-CM-Session':token},body:JSON.stringify({action,...data}),cmAction:action,signal:AbortSignal.timeout(30000)});const result=await r.json();if(!r.ok){if(r.status===401&&action!=='login'&&token===requestToken){token='';localStorage.removeItem(STORE);showLogin()}throw new Error(result.error||'通信に失敗しました。')}return result}
 async function perform(button,fn){if(button.disabled)return;clearError();button.disabled=true;try{await fn()}catch(e){error(e)}finally{button.disabled=false}}
-function showLogin(){planLoaded=false;replyShow=null;reportedShows=null;renderVoiceMode();$('#planBalanceForm').hidden=true;$('#planBalanceFields').replaceChildren();$('#showRequests').replaceChildren();supporters=[];encouragements=[];stampDefinitions=[];statsData=null;statsAt=0;todayPlan=null;actorId='';if($('#stampDialog').open)$('#stampDialog').close();difficultOffset=0;difficultResolved.clear();$('#difficultSection').classList.remove('has-difficulties');$('#supporterList').replaceChildren();$('#activeSupporter').replaceChildren();++difficultSerial;$('#difficultList').replaceChildren();state=null;$('#loginPage').hidden=false;$('#app').hidden=true;$('#nav').hidden=true;$('#logout').hidden=true;$('#pageTitle').textContent='お子さまの学びと、つながる。'}
+function showLogin(){dashboardAt=0;homeExtrasAt=0;planLoaded=false;replyShow=null;reportedShows=null;renderVoiceMode();$('#planBalanceForm').hidden=true;$('#planBalanceFields').replaceChildren();$('#showRequests').replaceChildren();supporters=[];encouragements=[];stampDefinitions=[];resetAnalysis();planSettingsRequest=null;pendingGraduation=null;targets=[];targetState={};++targetRequestSerial;$('#targets').replaceChildren();todayPlan=null;actorId='';if($('#stampDialog').open)$('#stampDialog').close();difficultOffset=0;difficultResolved.clear();$('#difficultSection').classList.remove('has-difficulties');$('#supporterList').replaceChildren();$('#activeSupporter').replaceChildren();++difficultSerial;$('#difficultList').replaceChildren();state=null;$('#loginPage').hidden=false;$('#app').hidden=true;$('#nav').hidden=true;$('#logout').hidden=true;$('#pageTitle').textContent='お子さまの学びと、つながる。'}
 function showApp(){$('#loginPage').hidden=true;$('#app').hidden=false;$('#nav').hidden=false;$('#logout').hidden=false;switchPage(page)}
-function switchPage(next){if(!['home','stats','talk','settings'].includes(next))next='home';page=next;for(const p of ['home','stats','talk','settings'])$('#'+p+'Page').hidden=p!==next;document.querySelectorAll('[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===next));$('#pageTitle').textContent=({home:'きょうの学習',stats:'成績・復習',talk:'声とスタンプ',settings:'保護者の設定'})[next];if(state&&next==='stats')loadStatistics().catch(error);if(state&&next==='settings'){loadPlanSettings();renderPin();renderMyName();if(!targets.length)loadTargets().catch(error)}if(state&&next==='talk'){renderMessages();loadMedalOptions().catch(error)}}
+function switchPage(next) {
+  if (!['home','stats','talk','settings'].includes(next)) next = 'home';
+  const changed = page !== next;
+  if (changed) {
+    $('#managerScroll').scrollTop = 0;
+    if (page === 'settings' && next !== 'stats') analysis.returnFromPin = false;
+  }
+  page = next;
+  for (const name of ['home','stats','talk','settings']) $('#' + name + 'Page').hidden = name !== next;
+  document.querySelectorAll('[data-page]').forEach(button => button.classList.toggle('active', button.dataset.page === next));
+  $('#pageTitle').textContent = ({home:'きょうの学習',stats:'分析・管理',talk:'声とスタンプ',settings:'保護者の設定'})[next];
+  if (!state) return;
+  if (next === 'stats') {
+    void loadStatistics();
+    if ($('#analysisBalance').open) void loadPlanSettings();
+  }
+  if (next === 'settings') {
+    renderPin();
+    renderMyName();
+    if (!analysis.returnFromPin && !targets.length) loadTargets().catch(error);
+  }
+  if (next === 'talk') {
+    renderMessages();
+    if ($('#voiceMode').value === 'medals') loadMedalOptions().catch(error);
+    if (!supporters.length) loadEncouragement().catch(error);
+  }
+  if (next === 'home' && changed) renderHome();
+  if (changed && ((next === 'home' && !homeExtrasAt) ||
+      ((next === 'home' || next === 'talk') && Date.now() - dashboardAt >= 15000))) {
+    refresh(false).catch(error);
+  }
+}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{clearError();switchPage(b.dataset.page)});
-function day(t){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(t))}
-function time(t){return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}).format(new Date(t))}
-function stampDate(t){return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(t))}
+$('.brand').onclick = event => {
+  event.preventDefault();
+  if (state) switchPage('home');
+};
+const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit' });
+const timeFormat = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', hour:'2-digit', minute:'2-digit' });
+const stampDateFormat = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+const day = value => dayFormat.format(new Date(value));
+const time = value => timeFormat.format(new Date(value));
+const stampDate = value => stampDateFormat.format(new Date(value));
 function textNode(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n}
 let difficultOffset=0,difficultSerial=0,difficultBusy=false;
 const difficultResolved=new Set();
@@ -173,7 +369,29 @@ async function loadDifficult(){
   const add=(title,value)=>{if(value==null||value==='')return;const p=textNode('p',title+'：'+plain(typeof value==='string'?value:JSON.stringify(value)));details.append(p)};
   add('問題ID',row.question_id);add('本文',q.passage);add('選択肢',q.options);add('答え',q.answer??q.correct_answer??q.correct_option_id);add('解説',q.explanation??q.reason??q.solution);add('ヒント',q.hint);add('ことば',snapshot.word);
   const raw=document.createElement('details');raw.append(textNode('summary','保存した問題情報'),textNode('pre',JSON.stringify(snapshot,null,2)));details.append(raw);body.append(details);
-  const resolve=textNode('button','解決','secondary');resolve.type='button';resolve.onclick=()=>perform(resolve,async()=>{difficultBusy=true;try{await api('difficult_resolve',{id:row.id});difficultResolved.add(row.id);++difficultSerial;card.remove();await loadDifficult();toast('解決にしました。未解決の一覧から除きました。')}finally{difficultBusy=false}});card.append(body,resolve);host.append(card);
+   const resolve = textNode('button', '解決', 'secondary');
+  resolve.type = 'button';
+  resolve.onclick = () => perform(resolve, async () => {
+    const owner = token;
+    difficultBusy = true;
+    resolve.textContent = '更新中…';
+    try {
+      await api('difficult_resolve', { id: row.id });
+      if (token !== owner) return;
+      difficultResolved.add(row.id);
+      ++difficultSerial;
+      card.remove();
+      toast('解決にしました。未解決の一覧から除きました。');
+      await loadDifficult().catch(() => {
+        if (token === owner) $('#difficultStatus').textContent = '最新の件数を取得できませんでした。';
+      });
+    } finally {
+      difficultBusy = false;
+      resolve.textContent = '解決';
+    }
+  });
+  card.append(body, resolve);
+  host.append(card);
  }
  $('#difficultPrev').disabled=difficultOffset===0;$('#difficultNext').disabled=difficultOffset+r.rows.length>=r.total;$('#difficultPage').textContent=r.total?((difficultOffset+1)+'〜'+Math.min(difficultOffset+r.rows.length,r.total)+' / '+r.total+'件'):'';
  $('#difficultStatus').textContent='解説したら「解決」を押してください。';
@@ -185,7 +403,7 @@ $('#difficultNext').onclick=()=>{difficultOffset+=20;refreshDifficult()};
 
 const SUBJECTS={geography:'社会・地理',kotoba:'国語・ことば',soroban:'そろばん',geometry:'算数・図形',english:'英語',moji:'ひらがな・カタカナ',reading:'読書'};
 const SUPPORT_COLORS={blue:'#3c6fab',rose:'#b65079',green:'#43814d',purple:'#8255ad',orange:'#bc6f20',teal:'#25898c'};
-let supporters=[],encouragements=[],stampDefinitions=[],actorId='',statsData=null,statsAt=0,statsFlight=null,stampTarget=null,selectedStamp=null,stampRequest=null,todayPlan=null;
+let supporters=[],encouragements=[],stampDefinitions=[],actorId='',stampTarget=null,selectedStamp=null,stampRequest=null,todayPlan=null;
 const plain=x=>String(x??'').replace(/\[\[([^|\]]+)\|[^\]]+\]\]/g,'$1');
 function badge(stamp){const d=stampDefinitions.find(x=>x.key===stamp.stamp_key)||{key:'flower',label:'スタンプ'},actor=stamp.supporter||{name:'おうちの人',color:'green'},n=textNode('button','','support-badge');n.type='button';n.innerHTML=cmStampArt(d.key,actor.color);n.style.setProperty('--stamp-color',SUPPORT_COLORS[actor.color]||SUPPORT_COLORS.green);n.setAttribute('aria-label',d.label+'、送信者を確認');n.onclick=()=>showStampSender(actor.name);return n}
 function stampBadges(type,key,source){const host=textNode('div','','support-badges');for(const r of encouragements.filter(x=>x.target_type===type&&x.target_key===key&&x.source_app===source).slice(0,8))host.append(badge(r));return host}
@@ -206,12 +424,397 @@ function renderTodayPlan(){const h=$('#todayPlan');h.replaceChildren();
     '学習済み '+minutes(payload.spent_ms)+'分 · 残りの目安 '+minutes(payload.remaining_ms)+'分':'';
   const excluded=new Set(payload?.selection_context?.excluded_sources||[]);
   const items=(payload?.items||[]).filter(item=>!excluded.has(item.source_app));if(!items.length){h.append(textNode('p','本体で「きょうやること」を表示すると、ここから課題ごとに応援できます。','empty'));return}for(const item of items){const row=textNode('div','','plan-support-row'+(item.done?' is-completed':'')),body=textNode('div','','grow');body.append(textNode('strong',plain(item.label||item.name||item.menu_id)),textNode('small',(SUBJECTS[item.source_app]||item.source_app)+' · '+(item.done?'✓ 本日達成済み':(item.reason||'これから取り組む課題'))),stampBadges('plan',item.plan_item_id,item.source_app));row.append(body,stampButton('plan',item.plan_item_id,item.source_app,plain(item.label||item.menu_id)));h.append(row)}}
-async function loadStatistics(force=false){if(statsFlight)return statsFlight;if(!force&&statsData&&Date.now()-statsAt<30000){renderStatistics();return}const who=token;$('#statsStatus').textContent='学習記録を集計しています…';statsFlight=api('statistics').then(r=>{if(who!==token)return;statsData=r;statsAt=Date.now();renderStatistics();const months=[...new Set(r.months.map(x=>x.month_key))].sort().reverse(),sel=$('#chartMonth'),prior=sel.value;sel.replaceChildren();for(const month of months){const o=document.createElement('option');o.value=month;o.textContent=month;sel.append(o)}if(months.includes(prior))sel.value=prior;renderChart();$('#statsStatus').textContent='開始・メダルの記録を実施ごとに重複排除しています。'}).catch(e=>{$('#statsStatus').textContent='集計できませんでした。更新して再試行してください。';throw e}).finally(()=>statsFlight=null);return statsFlight}
-function questionLabel(r){const q=r.snapshot||{};if(Array.isArray(q.terms)){return q.terms.map((n,i)=>(i?(q.operators?.[i-1]||q.op||'＋')+' ':'')+String(n)).join(' ')}if(q.a!=null&&q.b!=null)return q.a+' '+(q.op||'×')+' '+q.b;return plain(r.label||r.question_id)}
-function sortedRows(rows){const source=$('#statsSubject').value,query=$('#statsSearch').value.trim();return rows.filter(r=>(!source||r.source_app===source)&&(!query||plain(r.label||r.question_id||r.menu_id).includes(query))).sort((a,b)=>{if($('#statsSort').value==='weak')return (a.rate??101)-(b.rate??101)||b.attempts-a.attempts;if($('#statsSort').value==='attempts')return b.attempts-a.attempts;return (SUBJECTS[a.source_app]||a.source_app).localeCompare(SUBJECTS[b.source_app]||b.source_app,'ja')||plain(a.label||a.question_id).localeCompare(plain(b.label||b.question_id),'ja')})}
-function renderStatistics(){if(!statsData)return;const question=$('#statsType').value==='questions',rows=sortedRows(statsData[question?'questions':'units']),h=$('#statsTable');h.replaceChildren();const table=document.createElement('table'),head=document.createElement('thead'),tr=document.createElement('tr');for(const x of ['項目','試行','金 / 銀 / 銅','直近10回の正答率','確認・応援'])tr.append(textNode('th',x));head.append(tr);table.append(head);const body=document.createElement('tbody');for(const r of rows){const row=document.createElement('tr');row.className=(!question&&!r.graduated&&r.attempts>=10&&r.rate>=90&&r.recent?.length>=10)?'graduation-recommended':'';const name=document.createElement('td'),unit=statsData.units.find(x=>x.source_app===r.source_app&&x.menu_id===r.menu_id),label=plain(question?(unit?.label||r.menu_id||'設問')+' / '+questionLabel(r):r.label||r.menu_id);name.append(textNode('strong',label),textNode('small',SUBJECTS[r.source_app]||r.source_app));const attempts=textNode('td',String(r.attempts)),medals=textNode('td',question?'—':`🥇${r.gold} / 🥈${r.silver} / 🥉${r.bronze}`),rate=textNode('td',r.rate==null?'未採点':r.rate+'%');if(r.rate!=null&&r.rate<70)rate.className='low-rate';rate.append(textNode('small',question?(r.recent_count+'回分'):(r.recent?.length||0)+'回分'));const actions=document.createElement('td');actions.append(stampButton(question?'question':'menu',question?r.question_id:r.menu_id,r.source_app,label));if(!question){if(FOCUS_SOURCES.has(r.source_app)&&r.menu_id)actions.append(focusButton(r));const details=document.createElement('details');details.append(textNode('summary','直近10回を見る'));for(const trial of r.recent||[])details.append(textNode('p',stampDate(trial.at)+' · '+trial.correct+'/'+trial.total+'問 ('+trial.rate+'%)'));actions.append(details);if(['kotoba','geometry','soroban'].includes(r.source_app)){const graduate=textNode('button','修了認定へ','text');graduate.type='button';graduate.onclick=()=>{switchPage('settings');$('#subject').value=r.source_app;$('#targetType').value='unit:';$('#targetSearch').value=r.label||r.menu_id;loadTargets().catch(error)};actions.append(graduate)}}actions.append(stampBadges(question?'question':'menu',question?r.question_id:r.menu_id,r.source_app));for(const [cell,label]of [[name,'単元'],[attempts,'試行'],[medals,'メダル'],[rate,'直近10回'],[actions,'操作']])cell.dataset.label=label;if(row.className==='graduation-recommended')name.append(textNode('small','修了の確認をおすすめ','recommendation'));row.append(name,attempts,medals,rate,actions);body.append(row)}table.append(body);h.append(table);if(!rows.length)h.append(textNode('p','該当する採点記録はありません。','empty'));$('#statsDefinition').textContent=question?'設問別：直近10回の初回回答。ヒント使用を含み、自己確認・未採点は除外します。':statsData.definitions.rate+' メダル数は累計です。未採点を0%にはしません。'}
-function renderChart(){const h=$('#learningBars');h.replaceChildren();if(!statsData)return;const source=$('#chartSubject').value,metric=$('#chartMetric').value,cumulative=$('#chartPeriod').value==='all',month=$('#chartMonth').value;$('#chartMonth').disabled=cumulative;let rows=cumulative?statsData.units:statsData.months.filter(r=>r.month_key===month);rows=rows.filter(r=>!source||r.source_app===source).sort((a,b)=>b[metric]-a[metric]);const max=Math.max(1,...rows.map(r=>r[metric]));for(const r of rows){const row=textNode('div','','learning-bar-row'),label=textNode('span',plain(r.label||r.menu_id),'bar-label'),track=textNode('div','','bar-track'),bar=textNode('div','','bar-fill');bar.style.width=(r[metric]/max*100)+'%';track.append(bar);row.append(label,track,textNode('b',r[metric]+'回'));row.setAttribute('aria-label',(SUBJECTS[r.source_app]||'')+' '+label.textContent+' '+r[metric]+'回');h.append(row)}if(!rows.length)h.append(textNode('p','この期間の記録はありません。','empty'))}
-for(const id of ['statsSubject','statsSort','statsType'])$('#'+id).onchange=renderStatistics;$('#statsSearch').oninput=renderStatistics;$('#statsRefresh').onclick=()=>loadStatistics(true).catch(error);for(const id of ['chartSubject','chartMetric','chartPeriod','chartMonth'])$('#'+id).onchange=renderChart;$('#planRefresh').onclick=()=>loadTodayPlan().catch(error);
+const ANALYSIS_NAMES = {
+  kotoba: '国語', soroban: 'そろばん', geometry: '図形', english: '英語',
+  moji: 'ひらがな・カタカナ', reading: '読書', geography: '社会・地理',
+};
+const graduationSubject = $('#subject');
+graduationSubject.replaceChildren(...['soroban', ...Object.keys(ANALYSIS_NAMES).filter(source => source !== 'soroban')].map(source => {
+  const option = textNode('option', ANALYSIS_NAMES[source]);
+  option.value = source;
+  return option;
+}));
+graduationSubject.value = 'soroban';
+const REVIEW_STATUS = {
+  unconfigured: 'AI分析を利用するには OPENAI_API_KEY の設定が必要です。',
+  unknown_prompts: '今回の記録に対応する問題文を取得できなかったため、内容の傾向を分析できません。',
+
+  insufficient: '誤答が多く、内容を比較できる設問がまだ2題材に満たないため、共通の傾向は保留しています。',
+  no_pattern: '今回の記録から、複数の設問に共通する傾向は確認できませんでした。',
+  failed: 'AI分析を取得できませんでした。',
+};
+const ANALYSIS_DATE = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', dateStyle: 'short' });
+let analysis = newAnalysisState();
+
+function newAnalysisState() {
+  return { units: null, loadedAt: 0, request: null, detail: null, openKey: null, saving: false,
+    returnFromPin: false, pinScroll: 0, unitRows: new WeakMap() };
+}
+function resetAnalysis() {
+  analysis = newAnalysisState();
+  for (const id of ['analysisReview', 'analysisRecommended', 'statsTable']) $('#' + id).replaceChildren();
+  for (const id of ['statsCounts', 'statsStatus']) $('#' + id).textContent = '';
+  for (const id of ['statsSubject', 'statsSort', 'statsGraduation']) $('#' + id).selectedIndex = 0;
+  $('#analysisResults').hidden = true;
+  $('#statsEmpty').hidden = true;
+  $('#statsRefresh').disabled = false;
+}
+
+const analysisKey = unit => JSON.stringify([unit.source_app, unit.menu_id]);
+const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+function analysisPercent(rate, digits) {
+  const percent = rate * 100;
+  const scaled = percent * 10 ** digits;
+  const lower = Math.floor(scaled);
+  if (digits === 0 && percent % 1 === 0.5) {
+    return (lower + lower % 2) + '%';
+  }
+  if (digits === 1 && percent % 0.5 === 0.25) return ((lower + lower % 2) / 10).toFixed(1) + '%';
+  return percent.toFixed(digits) + '%';
+}
+function averageLabel(rate, count, size) {
+  return rate == null ? '—' : analysisPercent(rate, 1) + (count < size ? '（' + count + '回）' : '');
+}
+
+async function loadStatistics(force = false) {
+  const current = analysis;
+  if (current.request) return current.request;
+  if (!force && current.units && Date.now() - current.loadedAt < 30000) return;
+  if (force) {
+    current.loadedAt = 0;
+    current.detail = null;
+  }
+
+  const status = $('#statsStatus');
+  $('#statsRefresh').disabled = true;
+  status.textContent = '学習記録を集計しています…';
+  const request = api('analysis_management');
+  current.request = request;
+  syncAnalysisButtons();
+  try {
+    const result = await request;
+    if (analysis !== current || current.request !== request) return;
+    current.units = result.units;
+    current.unitRows = new WeakMap();
+    current.loadedAt = Date.now();
+    status.textContent = '';
+    renderStatistics();
+  } catch (e) {
+    if (analysis !== current || current.request !== request) return;
+    current.loadedAt = 0;
+    status.textContent = '学習記録を読み込めませんでした。「記録を更新」で再試行してください。';
+  } finally {
+    if (analysis === current && current.request === request) {
+      current.request = null;
+      $('#statsRefresh').disabled = current.saving;
+      syncAnalysisButtons();
+    }
+  }
+}
+
+function syncAnalysisButtons() {
+  const locked = analysis.saving || analysis.request || !analysis.loadedAt;
+  for (const button of $('#statsPage').querySelectorAll('[data-analysis-action]')) {
+    const disabled = Boolean(locked) || button.dataset.blocked === 'true';
+    if (disabled !== button.disabled) button.disabled = disabled;
+  }
+}
+function analysisButton(unit, kind, priority = false) {
+  const focus = kind === 'focus';
+  const active = focus ? unit.focused : unit.graduated;
+  const label = focus
+    ? (priority ? (unit.graduated ? '修了済み' : active ? '重点設定済み' : '重点単元に設定')
+      : active ? '設定中' : '重点にする')
+    : active ? '修了済み' : '修了する';
+  const button = textNode('button', label, active ? 'primary' : 'secondary');
+  button.type = 'button';
+  button.dataset.analysisAction = priority ? kind + '-priority' : kind;
+  button.dataset.unit = analysisKey(unit);
+  button.dataset.blocked = String((focus && unit.graduated) || (priority && active));
+  button.setAttribute('aria-label', unit.label + 'の' +
+    (focus ? (active ? '重点を解除' : '重点単元に設定') : (active ? '修了認定を取り消す' : '修了認定する')));
+  button.onclick = () => changeAnalysisUnit(unit, kind, active, button);
+  return button;
+}
+async function changeAnalysisUnit(unit, kind, active, button) {
+  const current = analysis;
+  if (current.saving || current.request || !current.loadedAt) return;
+  if (!unlocked()) {
+    current.returnFromPin = true;
+    current.pinScroll = $('#managerScroll').scrollTop;
+    redirectToPin();
+    return;
+  }
+  clearError();
+  current.saving = true;
+  $('#statsRefresh').disabled = true;
+  syncAnalysisButtons();
+  const focus = kind === 'focus';
+  const buttonLabel = button?.textContent;
+  if (button) button.textContent = '保存中…';
+  let refreshNeeded = false;
+  try {
+    const result = await api('analysis_set', {
+      source_app: unit.source_app, menu_id: unit.menu_id, kind, enabled: !active,
+      base_version: (focus ? unit.focus_version : unit.graduation_version) ?? null,
+    });
+    if (analysis !== current) return;
+    if (result.preference && typeof result.preference.graduated === 'boolean') {
+      current.units = current.units.map(row => row === unit ? { ...row, ...result.preference } : row);
+      renderStatistics();
+    } else {
+      refreshNeeded = true;
+    }
+    const message = focus ? (active ? '重点を解除しました。' : '重点単元に設定しました。')
+      : (active ? '修了認定を取り消しました。' : '修了認定しました。');
+    toast(unit.label + (active ? 'の' : 'を') + message);
+  } catch (e) {
+    if (analysis === current) { error(e); toast(e.message); }
+    refreshNeeded = true;
+  } finally {
+    if (analysis === current) {
+      if (button) button.textContent = buttonLabel;
+      if (refreshNeeded) await loadStatistics(true);
+      if (analysis === current) {
+        current.saving = false;
+        $('#statsRefresh').disabled = false;
+        syncAnalysisButtons();
+      }
+    }
+  }
+}
+
+async function requestAnalysisDetail(unit, key) {
+  const current = analysis;
+  const detail = { key, loading: true, data: null, error: '' };
+  current.detail = detail;
+  try {
+    detail.data = await api('analysis_detail', { source_app: unit.source_app, menu_id: unit.menu_id });
+  } catch (e) {
+    detail.error = e.message;
+  } finally {
+    detail.loading = false;
+    if (analysis === current && current.detail === detail && current.openKey === key) renderAnalysisPriorities();
+  }
+}
+
+function renderAnalysisDetail(host, unit) {
+  const key = analysisKey(unit);
+  host.append(textNode('strong', '設問別の得意・苦手'));
+  const detail = analysis.detail;
+  if (detail?.key !== key || detail.loading) {
+    host.append(textNode('p', '設問別の正誤と問題文を確認しています…', 'fine'));
+    if (detail?.key !== key) void requestAnalysisDetail(unit, key);
+    return;
+  }
+  function retry(label) {
+    const button = textNode('button', label, 'secondary');
+    button.type = 'button';
+    button.onclick = () => {
+      void requestAnalysisDetail(unit, key);
+      renderAnalysisPriorities();
+    };
+    host.append(button);
+  }
+  if (detail.error) {
+    host.append(textNode('p', detail.error, 'fine'));
+    retry('再試行');
+    return;
+  }
+  const { questions, coverage, window: windowSize, status, patterns, missing_prompts } = detail.data;
+  if (!Array.isArray(patterns)) {
+    host.append(textNode('p', '設問別の得意・苦手を表示するには、管理アプリとEdge Functionの両方を更新してください。', 'fine'));
+    return;
+  }
+  if (!questions.length) {
+    host.append(textNode('p', '最近の完了記録に、設問別の正誤を確認できるデータがありません。', 'fine'));
+    return;
+  }
+  host.append(
+    textNode('p', '直近' + windowSize + '回の完了記録のうち、設問別記録がある' + coverage +
+      '回を集計。各出題の最初の採点結果を使用しています。', 'fine'),
+    textNode('p', '2回以上出題され、正答または誤答が70％以上の設問を「得意傾向」「苦手傾向」としています。', 'fine'),
+  );
+  if (missing_prompts) {
+    host.append(textNode('p', missing_prompts + '問は問題文を照合できなかったため、内容の分析から外しています。', 'fine'));
+  }
+  host.append(textNode('strong', '間違えやすい内容の傾向'));
+  const byNumber = new Map(questions.map(row => [row.number,row]));
+  const evidenceLine = (label, numbers) => {
+    const items = numbers.map(number => byNumber.get(number)).filter(Boolean);
+    if (!items.length) return;
+    const list = document.createElement('ul');
+    for (const row of items) {
+      list.append(textNode('li', '設問' + row.number + '　' + row.prompt + '（正答' + row.correct + '回・誤答' + row.wrong + '回）'));
+    }
+    host.append(textNode('p', label, 'fine'), list);
+  };
+  if (status === 'ai') {
+    for (const pattern of patterns) {
+      host.append(textNode('h4', pattern.title), textNode('p', pattern.explanation, 'analysis-advice'));
+      evidenceLine('根拠となる苦手設問', pattern.evidence);
+      evidenceLine('比較した得意設問', pattern.contrast);
+    }
+    host.append(textNode('p', '設問別の記録に基づくAIの仮説です。', 'fine'));
+  } else {
+    host.append(textNode('p', REVIEW_STATUS[status] ?? '', 'fine'));
+    if (status === 'failed') retry('AI分析を再試行');
+  }
+
+  for (const [group, label] of [
+    ['often_wrong', '苦手傾向'], ['often_right', '得意傾向'],
+    ['mixed', '正誤が分かれる'], ['few', '出題1回・傾向は保留'],
+  ]) {
+    const items = questions.filter(row => row.group === group);
+    host.append(textNode('h4', label + '（' + items.length + '問）'));
+    if (!items.length) continue;
+    const list = document.createElement('ul');
+    for (const row of items) {
+      const item = document.createElement('li');
+      const total = row.correct + row.wrong;
+      item.append(textNode('strong', '設問' + row.number + '　' + (row.prompt || '問題文を取得できませんでした')),
+        textNode('p', '正答' + row.correct + '回・誤答' + row.wrong + '回／' + total +
+          '回出題（正答率 ' + (row.correct * 100 / total).toFixed(0) + '％）', 'fine'));
+      list.append(item);
+    }
+    host.append(list);
+  }
+}
+
+function renderPriority(host, units, kind) {
+  const review = kind === 'focus';
+  host.replaceChildren(
+    textNode('h2', (review ? '要確認' : '修了推奨') + '（' + units.length + '単元）'),
+    textNode('p', review ? '直近5回の平均正答率が70％未満' : '直近5回の平均正答率が90％以上の未認定単元', 'fine'),
+  );
+  if (!units.length) host.append(textNode('p', '該当する単元はありません。', 'fine'));
+  const rows = document.createDocumentFragment();
+  for (const unit of units) {
+    const row = textNode('div', '', 'analysis-priority-row');
+    const body = document.createElement('div');
+    const actions = textNode('div', '', 'analysis-priority-actions');
+    body.append(textNode('strong', ANALYSIS_NAMES[unit.source_app] + ' · ' + unit.label),
+      textNode('p', '直近5回の平均 ' + averageLabel(unit.moving[0], unit.moving[2], 5), 'fine'));
+    actions.append(analysisButton(unit, kind, true));
+    row.append(body, actions);
+    rows.append(row);
+    if (!review) continue;
+    const key = analysisKey(unit);
+    const open = analysis.openKey === key;
+    const toggle = textNode('button', open ? '詳細を閉じる' : '詳細を確認', 'secondary');
+    toggle.type = 'button';
+    toggle.dataset.analysisToggle = key;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.onclick = () => {
+      analysis.openKey = open ? null : key;
+      renderAnalysisPriorities();
+    };
+    actions.append(toggle);
+    if (open) {
+      const detail = textNode('div', '', 'analysis-detail');
+      row.append(detail);
+      renderAnalysisDetail(detail, unit);
+    }
+  }
+  host.append(rows);
+}
+
+function renderAnalysisPriorities() {
+  const units = analysis.units;
+  if (!units) return;
+  const active = document.activeElement;
+  const tie = (a, b) => compare(a.source_app, b.source_app) || compare(a.label, b.label) || compare(a.menu_id, b.menu_id);
+  const review = units.filter(unit => unit.moving[2] >= 5 && unit.moving[0] < 0.70)
+    .sort((a, b) => a.moving[0] - b.moving[0] || tie(a, b));
+  const recommended = units.filter(unit => unit.moving[2] >= 5 && unit.moving[0] >= 0.90 && !unit.graduated)
+    .sort((a, b) => b.moving[0] - a.moving[0] || tie(a, b));
+  if (!review.some(unit => analysisKey(unit) === analysis.openKey)) analysis.openKey = null;
+  renderPriority($('#analysisReview'), review, 'focus');
+  renderPriority($('#analysisRecommended'), recommended, 'unit');
+  syncAnalysisButtons();
+  if (active?.dataset.analysisToggle) {
+    [...$('#analysisReview').querySelectorAll('[data-analysis-toggle]')]
+      .find(button => button.dataset.analysisToggle === active.dataset.analysisToggle)?.focus({ preventScroll: true });
+  }
+}
+
+function renderAnalysisTable() {
+  if (!analysis.units) return;
+  const source = $('#statsSubject').value;
+  const order = $('#statsSort').value;
+  const graduation = $('#statsGraduation').value;
+  const units = analysis.units.filter(unit => !source || unit.source_app === source);
+  const sorted = units.filter(unit => !graduation || unit.graduated === (graduation === 'done'));
+  sorted.sort((a, b) => {
+    const tie = compare(a.label, b.label) || compare(a.source_app, b.source_app) || compare(a.menu_id, b.menu_id);
+    if (order === 'attempts') return b.attempts - a.attempts || tie;
+    if (order === 'last') return compare(b.last ?? '', a.last ?? '') || tie;
+    const x = order.startsWith('avg') ? a.moving[0] : a.rate;
+    const y = order.startsWith('avg') ? b.moving[0] : b.rate;
+    const direction = order === 'high' || order === 'avgHigh' ? -1 : 1;
+    return Number(x == null) - Number(y == null) || direction * ((x ?? 0) - (y ?? 0)) || tie;
+  });
+
+  $('#statsCounts').textContent = units.length + '単元 · 重点 ' + units.filter(unit => unit.focused).length +
+    '単元 · 修了認定済み ' + units.filter(unit => unit.graduated).length + '単元';
+  const host = $('#statsTable');
+  const empty = $('#statsEmpty');
+  empty.hidden = sorted.length > 0;
+  if (!sorted.length) {
+    host.replaceChildren();
+    empty.textContent = units.length ? '条件に合う単元はありません。' :
+      'このアプリの単元や学習記録が連携されると、ここに表示されます。';
+    return;
+  }
+
+  const rows = document.createDocumentFragment();
+  for (const unit of sorted) {
+    let record = analysis.unitRows.get(unit);
+    if (!record) {
+      const row = textNode('li', '', 'unit-record');
+      const header = textNode('div', '', 'unit-record-header');
+      const title = textNode('h3', '', 'unit-record-title');
+      const actions = textNode('div', '', 'unit-record-actions');
+      actions.append(analysisButton(unit, 'unit'), analysisButton(unit, 'focus'));
+      header.append(title, actions);
+
+      const [short, long, count, trend] = unit.moving;
+      const metrics = textNode('dl', '', 'unit-record-metrics');
+      const values = [
+        ['正答率', unit.rate == null ? '—' : analysisPercent(unit.rate, 0)],
+        ['5回平均', averageLabel(short, count, 5)],
+        ['15回平均', averageLabel(long, count, 15)],
+        ['推移', trend],
+        ['正解数／採点数', (unit.total ? unit.correct : '—') + ' / ' + unit.total],
+        ['学習回数', unit.attempts],
+        ['最終学習日', unit.last ? ANALYSIS_DATE.format(new Date(unit.last)) : '—'],
+      ];
+      for (const [name, value] of values) {
+        const metric = document.createElement('div');
+        metric.append(textNode('dt', name), textNode('dd', value));
+        metrics.append(metric);
+      }
+      row.append(header, metrics);
+      record = { row, title };
+      analysis.unitRows.set(unit, record);
+    }
+    record.title.textContent = unit.label + (source ? '' : '（' + ANALYSIS_NAMES[unit.source_app] + '）');
+    rows.append(record.row);
+  }
+  host.replaceChildren(rows);
+  syncAnalysisButtons();
+}
+
+function renderStatistics() {
+  $('#analysisResults').hidden = false;
+  renderAnalysisPriorities();
+  renderAnalysisTable();
+}
+
+for (const id of ['statsSubject', 'statsSort', 'statsGraduation']) $('#' + id).onchange = renderAnalysisTable;
+$('#statsRefresh').onclick = () => void loadStatistics(true);
+$('#planRefresh').onclick = () => loadTodayPlan().catch(error);
+
 let installPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installApp').disabled=false;$('#installNote').textContent='ホーム画面に追加して、アプリとして起動できます。'});$('#installApp').onclick=async()=>{if(installPrompt){await installPrompt.prompt();await installPrompt.userChoice;installPrompt=null}else toast('iPhone・iPad：Safariの共有メニューから「ホーム画面に追加」。Android・PC：ブラウザの「アプリをインストール」を選んでください。')};window.addEventListener('appinstalled',()=>{$('#installNote').textContent='インストールしました。ホーム画面から起動できます。'});
 
 const PLAN_GROUPS = {
@@ -228,6 +831,10 @@ let replyShow = null;
 let reportedShows = null;
 
 function redirectToPin() {
+  if (page === 'stats') {
+    analysis.returnFromPin = true;
+    analysis.pinScroll = $('#managerScroll').scrollTop;
+  }
   switchPage('settings');
   $('#pinForm').scrollIntoView({block: 'center'});
   $('#pinForm input').focus();
@@ -290,7 +897,7 @@ function renderPlanSettings(settings, preserveDraft = false) {
 async function loadPlanSettings(force = false) {
   if ((!force && planLoaded) || planSettingsRequest) return;
   const actor = token;
-  planSettingsRequest = api('plan_settings').then(result => {
+  const request = api('plan_settings').then(result => {
     if (token !== actor) return;
     renderPlanSettings(result.settings);
     planLoaded = true;
@@ -298,10 +905,14 @@ async function loadPlanSettings(force = false) {
     $('#planBalanceForm').hidden = false;
   }).catch(e => {
     if (token === actor) $('#planSettingsStatus').textContent = e.message;
-  }).finally(() => planSettingsRequest = null);
-  return planSettingsRequest;
+  }).finally(() => { if (planSettingsRequest === request) planSettingsRequest = null; });
+  planSettingsRequest = request;
+  return request;
 }
 
+$('#analysisBalance').ontoggle = () => {
+  if (token && state && $('#analysisBalance').open) void loadPlanSettings();
+};
 $('#reloadPlanSettings').onclick = () => loadPlanSettings(true);
 $('#planBalanceForm').onsubmit = event => {
   event.preventDefault();
@@ -321,7 +932,7 @@ $('#planBalanceForm').onsubmit = event => {
 };
 
 function focusButton(unit) {
-  const button = textNode('button', unit.focused ? '重点を解除' : '重点にする', 'secondary');
+  const button = textNode('button', unit.focused ? '設定中' : '重点にする', unit.focused ? 'primary' : 'secondary');
   button.type = 'button';
   button.disabled = !!unit.graduated;
   button.onclick = () => {
@@ -333,12 +944,11 @@ function focusButton(unit) {
           source_app: unit.source_app, menu_id: unit.menu_id, base_version: unit.focus_version ?? null,
           enabled: !unit.focused,
         });
-      } catch (e) {
-        await loadStatistics(true).catch(() => {});
-        throw e;
+      } finally {
+        if (token === actor) analysis.loadedAt = 0;
       }
       if (token !== actor) return;
-      await loadStatistics(true);
+      await loadTodayPlan().catch(() => {});
       toast(unit.focused ? '重点を解除しました。' : '重点単元に設定しました。');
     });
   };
@@ -375,7 +985,13 @@ function renderShowRequests(rows) {
       $('#record').scrollIntoView({ block: 'center' });
       $('#record').focus();
     };
-    line.append(body, stamp, voice);
+    const seen = textNode('button', '確認した', 'secondary');
+    seen.type = 'button';
+    seen.onclick = () => perform(seen, async () => {
+      await api('review_show', {show_id:request.id});
+      await loadShowRequests();
+    });
+    line.append(body, stamp, voice, seen);
     host.append(line);
   }
 }
@@ -403,7 +1019,10 @@ function renderVoiceMode() {
   $('#replyShowLabel').textContent = replyShow ? plain(replyShow.label) + ' へのお返事' : '';
 }
 
-$('#voiceMode').onchange = renderVoiceMode;
+$('#voiceMode').onchange = () => {
+  renderVoiceMode();
+  if ($('#voiceMode').value === 'medals') loadMedalOptions().catch(error);
+};
 $('#cancelShowReply').onclick = () => {
   if (recorder?.state === 'recording') return toast('録音を止めてから、お返事を解除してください。');
   if (blob) discard();
@@ -413,22 +1032,105 @@ $('#cancelShowReply').onclick = () => {
 };
 renderVoiceMode();
 
-async function refresh(){if(!token||pollBusy)return;pollBusy=true;try{state=await api('dashboard');showApp();renderHome();refreshDifficult();loadShowRequests();Promise.all([loadEncouragement(),loadTodayPlan()]).then(()=>{if(state){renderHome();renderTodayPlan()}}).catch(error);renderPin();renderMessages();$('#pushFailures').textContent=state.failed_deliveries?'送信できなかった通知があります。通知の再登録とテストをお試しください。':'通知の送信エラーは記録されていません。';if(!$('#ageForm').contains(document.activeElement))$('#age').value=state.age||5;await renderPush()}finally{pollBusy=false}}
+async function refresh(manual = true) {
+  if (!token || pollBusy) return;
+  const owner = token;
+  pollBusy = true;
+  try {
+    const dashboard = await api('dashboard');
+    if (token !== owner) return;
+    const first = !state;
+    // A dashboard read begun before PIN verification can finish after it.
+    if (!first && Date.parse(state.pin_until) > Date.now() &&
+        !(Date.parse(dashboard.pin_until) >= Date.parse(state.pin_until))) {
+      dashboard.pin_until = state.pin_until;
+      dashboard.pin_set = true;
+    }
+    state = dashboard;
+    dashboardAt = Date.now();
+    if (first) showApp();
+    renderPin();
+    renderMessages();
+    $('#unread').hidden = !state.messages.some(message => message.sender === 'child' && !message.read_at);
+    $('#pushFailures').textContent = state.failed_deliveries
+      ? '送信できなかった通知があります。通知の再登録とテストをお試しください。'
+      : '通知の送信エラーは記録されていません。';
+    if (!$('#ageForm').contains(document.activeElement)) $('#age').value = state.age || 5;
+    if (first) await renderPush();
+    if (page === 'home') {
+      renderHome();
+      if (manual || Date.now() - homeExtrasAt >= 60000) {
+        homeExtrasAt = Date.now();
+        void refreshDifficult();
+        void loadShowRequests();
+        void loadTodayPlan().catch(error);
+        void loadEncouragement().then(() => {
+          if (token === owner && page === 'home') { renderHome(); renderTodayPlan(); }
+        }).catch(error);
+      }
+    }
+  } finally {
+    pollBusy = false;
+  }
+}
+
 function renderHome(){const today=day(new Date()),events=state.events.filter(e=>day(e.created_at)===today),messages=state.messages;$('#learner').textContent=state.username;
  $('#completed').replaceChildren(document.createTextNode(events.filter(e=>e.kind==='unit_completed').length),textNode('small','回'));$('#started').replaceChildren(document.createTextNode(state.started_today??events.filter(e=>e.kind==='unit_started').length),textNode('small','回'));$('#voices').replaceChildren(document.createTextNode(messages.filter(e=>e.sender==='child'&&day(e.created_at)===today).length),textNode('small','件'));
  const latestDone=state.events.find(e=>e.kind==='unit_completed'&&day(e.created_at)===today);$('#lastActivity').textContent=latestDone?'最近の完了：'+time(latestDone.created_at)+' '+latestDone.title:'学習をやり遂げると、きょうのあしあとに表示します。';$('#syncTime').textContent=time(state.server_time)+' 更新';
  const host=$('#timeline');host.replaceChildren();const finishedToday=state.events.filter(e=>e.kind==='unit_completed'&&day(e.created_at)===today);if(!finishedToday.length)host.append(textNode('div','きょう完了した学習は、まだありません。','empty'));
- for(const e of finishedToday){const row=textNode('article','','event'),t=textNode('time',day(e.created_at)===today?time(e.created_at):stampDate(e.created_at));const icon=textNode('div',({app_opened:'❧',unit_started:'▶',unit_completed:'✦',voice_message:'♬',test:'♧'})[e.kind]||'•','event-icon'),body=document.createElement('div');const label=state.medals?.find(m=>m.attempt_id===e.entity_id&&m.source_app===e.source_app)?.category_label;body.append(textNode('h3',(SUBJECTS[e.source_app]||'学習')+'・'+plain(e.body||label||'学習').replace(/\s+\d+\/\d+$/,'')+'を完了'));row.append(t,body);if(e.kind==='unit_completed'&&e.entity_id){const reward=textNode('div','','event-reward'),m=state.medals?.find(m=>m.attempt_id===e.entity_id&&m.source_app===e.source_app);if(m){const medal=textNode('span',({gold:'🥇',silver:'🥈',bronze:'🥉',white:'⚪'})[m.grade]||'⚪','earned-medal');medal.setAttribute('aria-label',({gold:'金',silver:'銀',bronze:'銅',white:'取り組み'})[m.grade]+'メダル');medal.append(textNode('small',(m.stamp_char||'')+' '+m.correct_count+'/'+m.total_count));reward.append(medal)}else{const result=state.results?.find(r=>r.source_app===e.source_app&&r.attempt_id===e.entity_id)?.payload?.original_result;reward.append(textNode('small',e.source_app==='soroban'&&/検定/.test(e.body||'')&&result?.grade==='white'?'不合格（メダルなし）':'学習完了・メダルの保存待ち','fine'));}reward.append(stampButton('attempt',e.entity_id,e.source_app,e.body),stampBadges('attempt',e.entity_id,e.source_app));row.append(reward)}host.append(row)}
+ for (const event of finishedToday) {
+   const row = textNode('article', '', 'event');
+   const medal = state.medals?.find(item => item.attempt_id === event.entity_id && item.source_app === event.source_app);
+   const title = plain(event.body || medal?.category_label || '学習').replace(/\s+\d+\/\d+$/, '');
+   const body = document.createElement('div');
+   body.append(textNode('h3', (SUBJECTS[event.source_app] || '学習') + '・' + title + 'を完了'));
+   row.append(textNode('time', time(event.created_at)), body);
+
+   if (event.entity_id) {
+     const reward = textNode('div', '', 'event-reward');
+     if (medal) {
+       reward.append(timelineMedal(medal));
+     } else {
+       const result = state.results?.find(item => item.source_app === event.source_app &&
+         item.attempt_id === event.entity_id)?.payload?.original_result;
+       const failed = event.source_app === 'soroban' && /検定/.test(event.body || '') && result?.grade === 'white';
+       reward.append(textNode('small', failed ? '不合格（メダルなし）' : '学習完了・メダルの保存待ち', 'fine'));
+     }
+     reward.append(stampButton('attempt', event.entity_id, event.source_app, event.body),
+       stampBadges('attempt', event.entity_id, event.source_app));
+     row.append(reward);
+   }
+   host.append(row);
+ }
  const unread=messages.filter(m=>m.sender==='child'&&!m.read_at).length;$('#unread').hidden=!unread;
 }
 const MEDAL_SYMBOL={gold:'🥇',silver:'🥈',bronze:'🥉'},MEDAL_NAME={gold:'金',silver:'銀',bronze:'銅'};
+function timelineMedal(medal) {
+  const name = MEDAL_NAME[medal.grade];
+  const label = name ? name + 'メダル' : medal.grade === 'white' ? '取り組みメダル（白）' : 'メダル';
+  const badge = textNode('span', '', 'timeline-medal');
+  badge.dataset.grade = medal.grade || '';
+  const icon = textNode('span', MEDAL_SYMBOL[medal.grade] || '○', 'timeline-medal-icon');
+  icon.setAttribute('aria-hidden', 'true');
+  const body = document.createElement('span');
+  body.append(textNode('strong', label));
+  if (medal.special_medal_key) {
+    body.append(textNode('small', medal.special_medal_label || '特別メダル'));
+  }
+  if (medal.stamp_char) body.append(textNode('small', 'しるし「' + medal.stamp_char + '」'));
+  if (medal.correct_count != null && medal.total_count != null) {
+    body.append(textNode('small', '正解 ' + medal.correct_count + ' / ' + medal.total_count + '問'));
+  }
+  badge.append(icon, body);
+  return badge;
+}
 let medalOptions=[],medalOptionsLoading=null;
 async function loadMedalOptions(){if(medalOptions.length)return;if(medalOptionsLoading)return medalOptionsLoading;medalOptionsLoading=api('medal_targets').then(r=>{medalOptions=r.targets;for(const select of document.querySelectorAll('.requirement-target'))populateMedalOptions(select)}).finally(()=>medalOptionsLoading=null);return medalOptionsLoading}
 function populateMedalOptions(select){const prior=select.value;select.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='単元を選んでください';select.append(placeholder);const names={kotoba:'国語',soroban:'そろばん',geometry:'図形',english:'英語',moji:'ひらがな・カタカナ'};for(const source of Object.keys(names)){const items=medalOptions.filter(t=>t.source_app===source);if(!items.length)continue;const group=document.createElement('optgroup');group.label=names[source];for(const t of items){const option=document.createElement('option');option.value=t.id;option.textContent=t.label;group.append(option)}select.append(group)}select.value=prior;}
 function addRequirement(){const host=$('#requirementRows');if(host.children.length>=12){toast('条件は12個まで指定できます。');return}const row=textNode('div','','requirement-row'),target=document.createElement('select');target.className='requirement-target';target.setAttribute('aria-label','必要なメダルの単元');populateMedalOptions(target);const grade=document.createElement('select');grade.className='requirement-grade';grade.setAttribute('aria-label','メダルの色と条件');for(const [value,label]of [['bronze:at_least','🥉 銅以上'],['silver:at_least','🥈 銀以上'],['gold:at_least','🥇 金'],['bronze:exact','🥉 銅ちょうど'],['silver:exact','🥈 銀ちょうど']]){const o=document.createElement('option');o.value=value;o.textContent=label;grade.append(o)}const count=document.createElement('input');count.type='number';count.min=1;count.max=20;count.value=1;count.className='requirement-count';count.setAttribute('aria-label','必要なメダルの個数');const unit=textNode('span','個','fine'),remove=textNode('button','削除','text');remove.type='button';remove.onclick=()=>{row.remove();if(!host.children.length)addRequirement()};row.append(target,grade,count,unit,remove);host.append(row)}
 function collectRequirements(){const rows=[...document.querySelectorAll('.requirement-row')];const seen=new Set();return rows.map(row=>{const target=row.querySelector('.requirement-target').value,[grade,comparison]=row.querySelector('.requirement-grade').value.split(':'),count=Number(row.querySelector('.requirement-count').value);if(!target)throw new Error('必要なメダルの単元を選んでください。');if(seen.has(target))throw new Error('同じ単元の条件は1行にまとめてください。');if(!Number.isInteger(count)||count<1||count>20)throw new Error('個数は1〜20個にしてください。');seen.add(target);return {target_id:target,grade,comparison,count}})}
 function parentMedalProgress(m){if(!m.unlock_requirements?.length)return null;const section=textNode('div','','medal-progress'),u=m.unlock||{unlocked:false,conditions:m.unlock_requirements};const headline=u.unlocked?'🔓 メダル達成・再生できます':!u.delivered_at?'📮 お届け待ち：受信後に集計開始':'🔒 メダルを集めています';section.append(textNode('strong',headline));if(u.delivered_at)section.append(textNode('small',stampDate(u.delivered_at)+' から集計'));
- for(const r of u.conditions){const line=textNode('div','','medal-condition'+(r.complete?' complete':''));line.append(textNode('span',r.complete?'✓':'○','condition-check'),textNode('span',r.label,'condition-label'));const need=textNode('span',MEDAL_SYMBOL[r.grade]+' '+MEDAL_NAME[r.grade]+(r.comparison==='at_least'&&r.grade!=='gold'?'以上':'')+' × '+r.count,'condition-need');line.append(need);const earned=textNode('div','','condition-earned');for(const medal of r.earned||[])earned.append(textNode('span',MEDAL_SYMBOL[medal.grade]+' '+medal.count+'個','earned-medal'));if(!r.earned?.length)earned.append(textNode('span','まだ未獲得','fine'));line.append(earned,textNode('small',(r.qualified_count||0)+' / '+r.count+'個'+(r.complete?' 達成':' ・あと'+(r.remaining??r.count)+'個')));section.append(line)}return section}
+ for(const r of u.conditions){const line=textNode('div','','medal-condition'+(r.complete?' complete':''));line.append(textNode('span',r.complete?'✓':'○','condition-check'),textNode('span',r.label,'condition-label'));const need=textNode('span',MEDAL_SYMBOL[r.grade]+' '+MEDAL_NAME[r.grade]+(r.comparison==='at_least'&&r.grade!=='gold'?'以上':'')+' × '+r.count,'condition-need');line.append(need);const earned=textNode('div','','condition-earned');for(const medal of r.earned||[])earned.append(textNode('span',MEDAL_SYMBOL[medal.grade]+' '+MEDAL_NAME[medal.grade]+'メダル '+medal.count+'個','earned-medal'));if(!r.earned?.length)earned.append(textNode('span','まだ未獲得','fine'));line.append(earned,textNode('small',(r.qualified_count||0)+' / '+r.count+'個'+(r.complete?' 達成':' ・あと'+(r.remaining??r.count)+'個')));section.append(line)}return section}
 $('#addRequirement').onclick=()=>{addRequirement();if(token)loadMedalOptions().catch(error)};addRequirement();
 
 function renderMessages(){if(!state)return;const sig=JSON.stringify(state.messages);if(sig===messageSignature)return;if([...document.querySelectorAll('#messages audio')].some(a=>!a.paused))return;messageSignature=sig;const host=$('#messages');host.replaceChildren();if(!state.messages.length)host.append(textNode('div','まだおたよりはありません。スタンプや声で応援してみましょう。','empty'));
@@ -466,19 +1168,66 @@ $('#discardVoice').onclick=discard;
 $('#sendVoice').onclick=()=>perform($('#sendVoice'),async()=>{if(!blob)throw new Error('先に録音してください。');const mode=$('#voiceMode').value;const requirements=mode==='medals'?collectRequirements():[];if(blob.size>3145728)throw new Error('録音の容量が大きすぎます。短く録り直してください。');const audio=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(blob)});await api('send',{kind:'voice',audio,mime:blob.type,request_id:voiceId,title:$('#messageTitle').value,requirements,voice_mode:mode,show_id:replyShow?.id});discard();replyShow=null;renderVoiceMode();$('#messageTitle').value='';$('#requirementRows').replaceChildren();addRequirement();toast('声のおたよりを送りました。');await refresh()});
 let pendingGraduation=null;
 function unlocked(){return state?.pin_until&&Date.parse(state.pin_until)>Date.now()}
-function renderPin(){if(!state)return;const setup=!state.pin_set;$('#pinConfirm').hidden=!setup;$('#pinSubmit').textContent=setup?'PINを設定':'PINで解除';$('#pinState').textContent=setup?'最初に、保護者だけが知っている数字6桁のPINを設定してください。':unlocked()?'設定の変更ができます（解除から10分間）。':'年齢・修了認定・学習設定の変更には、管理用PINが必要です。';$('#ageForm button').disabled=!unlocked();document.querySelectorAll('.target button').forEach(b=>b.disabled=false);}
-$('#pinForm').onsubmit=e=>{e.preventDefault();const f=e.currentTarget;perform(f.querySelector('button'),async()=>{const r=await api(state.pin_set?'pin_unlock':'pin_setup',Object.fromEntries(new FormData(f)));state.pin_set=true;state.pin_until=r.unlocked_until;f.reset();renderPin();toast('10分間、設定を変更できます。');await loadTargets();if(pendingGraduation){const key=pendingGraduation.key;pendingGraduation=null;const index=targets.findIndex(t=>t.target_key===key);$('#targets').children[index]?.scrollIntoView({block:'center',behavior:'smooth'})}})};
+let pinChecking = false;
+function renderPin() {
+  if (!state) return;
+  const setup = !state.pin_set;
+  $('#pinConfirm').hidden = !setup;
+  $('#pinSubmit').textContent = pinChecking ? 'PINを確認中…' : setup ? 'PINを設定' : 'PINで解除';
+  $('#pinState').textContent = pinChecking ? '確認が終わるまでお待ちください。'
+    : setup ? '最初に、保護者だけが知っている数字6桁のPINを設定してください。'
+    : unlocked() ? '設定の変更ができます（解除から10分間）。'
+    : '年齢・修了認定・学習設定の変更には、管理用PINが必要です。';
+  $('#ageForm button').disabled = !unlocked();
+}
+
+$('#pinForm').onsubmit = event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const owner = token;
+  return perform($('#pinSubmit'), async () => {
+    pinChecking = true;
+    renderPin();
+    try {
+      const result = await api(state.pin_set ? 'pin_unlock' : 'pin_setup',
+        Object.fromEntries(new FormData(form)));
+      if (owner !== token || !state) return;
+      state.pin_set = true;
+      state.pin_until = result.unlocked_until;
+      form.reset();
+      toast('10分間、設定を変更できます。');
+      if (analysis.returnFromPin && page === 'settings') {
+        analysis.returnFromPin = false;
+        switchPage('stats');
+        $('#managerScroll').scrollTop = analysis.pinScroll;
+      } else if (pendingGraduation) {
+        const { source, key } = pendingGraduation;
+        pendingGraduation = null;
+        const index = targets.findIndex(target => target.source_app === source && target.target_key === key);
+        $('#targets').children[index]?.scrollIntoView({ block: 'center' });
+      } else if (page === 'settings' && !targets.length) {
+        void loadTargets().catch(error);
+      }
+    } finally {
+      pinChecking = false;
+      renderPin();
+    }
+  });
+};
 $('#ageForm').onsubmit=e=>{e.preventDefault();perform(e.currentTarget.querySelector('button'),async()=>{await api('age',{age:Number($('#age').value)});toast('年齢を変更しました。');await refresh()})};
 let targetRequestSerial=0;
-async function loadTargets(more=false){const serial=++targetRequestSerial;const source=$('#subject').value;if(!more){targets=[];offset=0}const r=await api('targets',{source_app:source,offset,target_type:$('#targetType').value,search:$('#targetSearch').value});if(serial!==targetRequestSerial)return;targets=[...new Map([...targets,...r.targets].map(t=>[t.target_key,t])).values()];offset+=r.targets.length;targetState=r.state.items||{};$('#loadMore').hidden=r.targets.length<200;renderTargets()}
-function renderTargets(){const host=$('#targets');host.replaceChildren();const query=$('#targetSearch').value.trim(),type=$('#targetType').value,shown=targets.filter(t=>t.target_key.startsWith(type)&&(!query||t.label.includes(query)||t.target_key.includes(query)));if(!shown.length)host.append(textNode('div',targets.length?'該当する項目がありません。「さらに読み込む」で続きも確認できます。':'対象の項目がありません。','empty'));
- for(const t of shown){const item=targetState[t.target_key],done=!!item?.record,row=textNode('div','','target'+(done?' done':'')),label=textNode('div',t.label,'grow');label.append(textNode('small',done?'修了認定済み':'未認定'));const b=textNode('button',done?'認定を解除':'修了にする',done?'text':'secondary');b.disabled=false;b.onclick=()=>{if(!unlocked()){pendingGraduation={source:t.source_app,key:t.target_key};$('#pinForm').scrollIntoView({block:'center',behavior:'smooth'});$('#pinForm input').focus();toast('修了認定には管理用PINを入力してください。');return}return perform(b,async()=>{try{await api('graduate',{source_app:t.source_app,target_key:t.target_key,base_version:item?.version??null,enabled:!done});toast(done?'修了認定を解除しました。':'修了として認定しました。');}finally{await loadTargets()}})};row.append(label,b);host.append(row)}}
+async function loadTargets(more=false){const serial=++targetRequestSerial;const source=$('#subject').value;if(!more){targets=[];offset=0}const r=await api('targets',{source_app:source,offset,target_type:$('#targetType').value,search:$('#targetSearch').value});if(serial!==targetRequestSerial)return;targets=[...new Map([...targets,...r.targets].map(t=>[t.target_key,t])).values()];offset+=r.targets.length;targetState=r.state.items||{};$('#loadMore').hidden=!(r.has_more??(r.targets.length===200));renderTargets()}
+function renderTargets(){const host=$('#targets');host.replaceChildren();if(!targets.length)host.append(textNode('div','対象の項目がありません。','empty'));
+ for(const t of targets){const item=targetState[t.target_key],done=!!item?.record,row=textNode('div','','target'+(done?' done':'')),label=textNode('div',t.label,'grow');label.append(textNode('small',done?'修了認定済み':'未認定'));const b=textNode('button',done?'認定を解除':'修了にする',done?'text':'secondary');b.disabled=false;b.onclick=()=>{if(!unlocked()){pendingGraduation={source:t.source_app,key:t.target_key};$('#pinForm').scrollIntoView({block:'center',behavior:'smooth'});$('#pinForm input').focus();toast('修了認定には管理用PINを入力してください。');return}return perform(b,async()=>{try{await api('graduate',{source_app:t.source_app,target_key:t.target_key,base_version:item?.version??null,enabled:!done});analysis.loadedAt=0;toast(done?'修了認定を解除しました。':'修了として認定しました。');}finally{await loadTargets()}})};row.append(label,b);host.append(row)}}
 $('#subject').onchange=()=>loadTargets().catch(error);$('#targetType').onchange=()=>loadTargets().catch(error);let searchTimer;$('#targetSearch').oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadTargets().catch(error),350)};$('#loadMore').onclick=()=>perform($('#loadMore'),()=>loadTargets(true));
 $('#auditBtn').onclick=()=>perform($('#auditBtn'),async()=>{const r=await api('audit');const host=$('#audit');host.replaceChildren();if(!r.rows.length)host.textContent='まだ変更履歴はありません。';for(const a of r.rows)host.append(textNode('div',stampDate(a.created_at)+'　'+(a.action==='age'?'年齢：'+a.detail.age+'歳':a.action==='focus'?(a.detail.enabled?'重点に設定：':'重点を解除：')+a.detail.target_key:(a.detail.enabled?'修了認定：':'認定解除：')+a.detail.target_key),'audit-row'))});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRecording();else if(token)refresh().catch(error)});window.addEventListener('online',()=>{if(token)refresh().catch(error)});setInterval(()=>{if(token&&!document.hidden)refresh().catch(e=>{$('#syncTime').textContent='接続を再確認中';error(e)})},15000);setInterval(renderPin,10000);
-if(token)refresh().catch(error);else showLogin();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRecording();else if(token)refresh().catch(error)});window.addEventListener('online',()=>{if(token)refresh().catch(error)});setInterval(() => {
+  if (token && !document.hidden && (page === 'home' || page === 'talk')) {
+    refresh(false).catch(() => { $('#syncTime').textContent = '接続を再確認中'; });
+  }
+}, 30000);setInterval(renderPin,10000);
 
-for(const id of ['statsSubject','chartSubject'])for(const [value,label]of Object.entries(SUBJECTS)){const o=document.createElement('option');o.value=value;o.textContent=label;$('#'+id).append(o)}
+for(const [value,label] of Object.entries(ANALYSIS_NAMES)){const o=document.createElement('option');o.value=value;o.textContent=label;$('#statsSubject').append(o)}
 
 function readMyName(){try{const p=JSON.parse(localStorage.getItem('cm_manager_person_v1')||'{}');return {name:typeof p.name==='string'?p.name:'',color:SUPPORT_COLORS[p.color]?p.color:'green'}}catch{return {name:'',color:'green'}}}
 function renderMyName(){renderSupporterManagement()}
@@ -494,12 +1243,41 @@ $('#stampWhoClose').onclick=()=>$('#stampWhoDialog').close();
 function actorColorSelect(value){const select=document.createElement('select');for(const [v,label] of [['blue','青'],['rose','ピンク'],['green','緑'],['purple','紫'],['orange','オレンジ'],['teal','青緑']]){const o=document.createElement('option');o.value=v;o.textContent=label;select.append(o)}select.value=value||'green';select.setAttribute('aria-label','枠の色');return select}
 function renderSupporterManagement(force=false){const h=$('#supporterList');if(!force&&h.contains(document.activeElement))return;h.replaceChildren();for(const actor of supporters){const form=document.createElement('form');form.className='person-row';const name=document.createElement('input');name.value=actor.name;name.maxLength=24;name.required=true;name.setAttribute('aria-label','名前 '+actor.name);const color=actorColorSelect(actor.color),button=textNode('button','保存','secondary');button.type='submit';form.append(name,color,button);form.onsubmit=e=>{e.preventDefault();perform(button,async()=>{await saveActor(name.value,color.value,actor.id);toast('名前と色を保存しました。')})};h.append(form)}renderActors()}
 $('#supporterAddForm').onsubmit=e=>{e.preventDefault();perform($('#supporterAddSave'),async()=>{await saveActor($('#supporterAddName').value,$('#supporterAddColor').value,null);$('#supporterAddName').value='';toast('管理する人を追加しました。')})};
+if(token)refresh().catch(error);else showLogin();
 </script><script>
-function cmFramePost(type,extra={}){parent.postMessage({isStreamlitMessage:true,type,...extra},'*')}
-cmFramePost('streamlit:componentReady',{apiVersion:1});
-const cmManagerHeight=Math.max(540,Math.min(900,(screen.availHeight||840)-140));
-document.documentElement.style.height=cmManagerHeight+'px';document.body.style.height=cmManagerHeight+'px';document.body.style.overflowY='auto';
-cmFramePost('streamlit:setFrameHeight',{height:cmManagerHeight});
+// The iframe fits the host viewport. The main panel owns vertical scrolling.
+(function sizeManagerFrame() {
+  if (parent === window) return;
+  const post = (type, data) => parent.postMessage({ isStreamlitMessage: true, type, ...data }, '*');
+  post('streamlit:componentReady', { apiVersion: 1 });
+
+  let heightSent = 0;
+  function sendHeight(height) {
+    const next = Math.max(1, Math.floor(height));
+    if (next === heightSent) return;
+    heightSent = next;
+    post('streamlit:setFrameHeight', { height: next });
+  }
+
+  const frame = window.frameElement;
+  if (frame) {
+    const viewport = parent.visualViewport;
+    const resizeToViewport = () => {
+      const top = viewport?.offsetTop ?? 0;
+      const bottom = top + (viewport?.height ?? frame.ownerDocument.documentElement.clientHeight);
+      sendHeight(bottom - Math.max(top, frame.getBoundingClientRect().top));
+    };
+    parent.addEventListener('resize', resizeToViewport);
+    viewport?.addEventListener('resize', resizeToViewport);
+    viewport?.addEventListener('scroll', resizeToViewport);
+    resizeToViewport();
+    window.addEventListener('load', resizeToViewport, { once: true });
+    return;
+  }
+
+  // The main panel also scrolls when an embedded host withholds its dimensions.
+  sendHeight(Math.min(680, screen.availHeight || 680));
+})();
 </script><script>try{if(typeof render==='function'){const original=render;render=function(...a){const r=original.apply(this,a);window.__cmUxDiagnosticsV2?.ready('render');return r}}}catch{}try{if(typeof bridge==='function'){const original=bridge;bridge=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}try{if(typeof post==='function'){const original=post;post=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}try{if(typeof valuePost==='function'){const original=valuePost;valuePost=function(type,data){if(type==='streamlit:setComponentValue')window.__cmUxDiagnosticsV2?.sent(data?.value);return original.apply(this,arguments)}}}catch{}</script></body></html>
 '''
 
