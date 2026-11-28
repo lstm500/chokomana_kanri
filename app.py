@@ -448,7 +448,7 @@ $('#sendTargetStamp').onclick=()=>perform($('#sendTargetStamp'),async()=>{
   }
   $('#stampDialog').close();
   toast(message?'スタンプとメッセージを届けました。':'スタンプを届けました。');
-  loadShowRequests();await loadEncouragement();renderHome();renderTodayPlan();if(statsData)renderStatistics()
+  loadShowRequests();await loadEncouragement();renderHome();renderTodayPlan();if(analysis.units)renderStatistics()
 });
 async function loadTodayPlan(){const who=token;const r=await api('today_plan');if(token!==who)return;todayPlan=r.plan;renderTodayPlan()}
 function renderTodayPlan(){const h=$('#todayPlan');h.replaceChildren();
@@ -1269,7 +1269,7 @@ function renderMyName(){renderSupporterManagement()}
 
 
 function rememberActor(a){localStorage.setItem('cm_manager_person_v1',JSON.stringify({name:a.name,color:a.color}));localStorage.setItem('cm_supporter:'+state.username,a.id)}
-async function saveActor(name,color,id){name=String(name).trim();if(!name)throw Error('名前を入力してください。');const selected=!id||id===actorId;const r=await api('supporter_save',{name,color,...(id?{id}:{})});supporters=supporters.filter(x=>x.id!==r.row.id).concat(r.row);if(selected){actorId=r.row.id;rememberActor(r.row)}renderActors();renderStampChoices();renderGeneralStamps();renderSupporterManagement(true);if(state){await loadEncouragement();renderHome();renderTodayPlan();if(statsData)renderStatistics()}}
+async function saveActor(name,color,id){name=String(name).trim();if(!name)throw Error('名前を入力してください。');const selected=!id||id===actorId;const r=await api('supporter_save',{name,color,...(id?{id}:{})});supporters=supporters.filter(x=>x.id!==r.row.id).concat(r.row);if(selected){actorId=r.row.id;rememberActor(r.row)}renderActors();renderStampChoices();renderGeneralStamps();renderSupporterManagement(true);if(state){await loadEncouragement();renderHome();renderTodayPlan();if(analysis.units)renderStatistics()}}
 
 function showStampSender(name){const p=$('#stampWhoDialog');$('#stampWhoName').textContent=name||'おうちの人';if(!p.open)p.showModal()}
 $('#stampWhoClose').onclick=()=>$('#stampWhoDialog').close();
